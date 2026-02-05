@@ -1,6 +1,6 @@
-use std::net::{TcpListener, TcpStream};
+use p2p::ThreadPool;
 use std::io::{Read, Write};
-use std::thread;
+use std::net::{TcpListener, TcpStream};
 
 struct HttpRequest;
 
@@ -30,7 +30,7 @@ impl HttpResponse {
             body
         );
 
-        let _ = stream.write_all(response.as_bytes());
+        stream.write_all(response.as_bytes()).unwrap();
     }
 }
 
@@ -54,20 +54,18 @@ fn handle_client(mut stream: TcpStream) {
     }
 }
 
-fn main() -> std::io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:8080")?;
-    println!("Threaded server listening on http://127.0.0.1:8080");
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
+    let pool = ThreadPool::new(20);
 
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                thread::spawn(|| {
+                pool.execute(|| {
                     handle_client(stream);
                 });
             }
             Err(e) => eprintln!("accept error: {e}"),
         }
     }
-
-    Ok(())
 }
