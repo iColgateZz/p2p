@@ -1,4 +1,4 @@
-use p2p::http::{HttpRequest, HttpResponse};
+use p2p::http::{HttpParseError, HttpRequest, HttpResponse};
 use p2p::threadpool::ThreadPool;
 use std::io::Read;
 use std::net::{TcpListener, TcpStream};
@@ -13,9 +13,22 @@ fn handle_client(mut stream: TcpStream) {
             Ok(n) => {
                 buf.extend_from_slice(&tmp[..n]);
 
-                if let Some(req) = HttpRequest::try_from(&buf) {
-                    HttpResponse::respond(&mut stream, req);
-                    return; // HTTP/1.0 → close after response
+                match HttpRequest::try_from(&buf) {
+                    Ok(req) => {
+                        println!("{req:#?}");
+                        HttpResponse::respond(&mut stream, req);
+                        return;
+                    },
+
+                    Err(HttpParseError::Incomplete) => {
+                        continue;
+                    },
+
+                    Err(e) => {
+                        //TODO 404 Bad Request
+                        eprintln!("{e:?}");
+                        return;
+                    }
                 }
             }
             Err(_) => return,
