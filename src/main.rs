@@ -1,38 +1,7 @@
+use p2p::http::{HttpRequest, HttpResponse};
 use p2p::threadpool::ThreadPool;
-use std::io::{Read, Write};
+use std::io::Read;
 use std::net::{TcpListener, TcpStream};
-
-struct HttpRequest;
-
-impl HttpRequest {
-    fn try_from(buf: &[u8]) -> Option<HttpRequest> {
-        if buf.ends_with(b"\r\n\r\n") {
-            Some(HttpRequest {})
-        } else {
-            None
-        }
-    }
-}
-
-struct HttpResponse;
-
-impl HttpResponse {
-    fn respond(stream: &mut TcpStream, _req: HttpRequest) {
-        let body = "Hello, world!\n";
-
-        let response = format!(
-            "HTTP/1.0 200 OK\r\n\
-            Content-Length: {}\r\n\
-            Content-Type: text/plain\r\n\
-            \r\n\
-            {}",
-            body.len(),
-            body
-        );
-
-        stream.write_all(response.as_bytes()).unwrap();
-    }
-}
 
 fn handle_client(mut stream: TcpStream) {
     let mut buf = Vec::new();
