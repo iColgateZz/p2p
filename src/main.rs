@@ -1,4 +1,4 @@
-use p2p::ThreadPool;
+use p2p::threadpool::ThreadPool;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
