@@ -42,7 +42,7 @@ impl Drop for ThreadPool {
         drop(self.sender.take());
 
         for worker in self.workers.drain(..) {
-            println!("Shutting down worker {}", worker.id);
+            eprintln!("Shutting down worker {}", worker.id);
 
             worker.thread.join().unwrap();
         }
@@ -63,7 +63,7 @@ impl Worker {
                 match message {
                     Ok(job) => job(),
                     Err(_) => {
-                        println!("Worker {id} disconnected; shutting down.");
+                        eprintln!("Worker {id} disconnected; shutting down.");
                         break;
                     }
                 }
