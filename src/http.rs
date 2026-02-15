@@ -1,8 +1,9 @@
+use serde_json::json;
 use std::collections::HashMap;
 use std::io::Write;
 use std::net::TcpStream;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HttpMethod {
     GET(String),
     POST(String),
@@ -10,11 +11,23 @@ pub enum HttpMethod {
     DELETE(String),
 }
 
+impl HttpMethod {
+    pub fn path(&self) -> &str {
+        match self {
+            HttpMethod::GET(p)
+            | HttpMethod::POST(p)
+            | HttpMethod::PUT(p)
+            | HttpMethod::DELETE(p) => p,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct HttpRequest {
     pub method: HttpMethod,
     pub headers: HashMap<String, String>,
     pub body: String,
+    pub remote_addr: Option<String>,
 }
 
 #[derive(Debug)]
@@ -89,6 +102,7 @@ impl HttpRequest {
             method,
             headers,
             body: body.to_string(),
+            remote_addr: None,
         })
     }
 }
@@ -96,19 +110,33 @@ impl HttpRequest {
 pub struct HttpResponse;
 
 impl HttpResponse {
-    pub fn respond(stream: &mut TcpStream, _req: HttpRequest) {
-        let body = "Hello, world!\n";
+    pub fn respond(stream: &mut TcpStream, req: HttpRequest) {
+        let path = req.method.path();
+
+        let body = if path.starts_with("/addr") {
+            crate::peers::get_known_peers_json()
+        } else if path.starts_with("/getblocks") {
+            crate::ledger::handle_getblocks_request(path)
+        } else if path.starts_with("/getdata") {
+            crate::ledger::handle_getdata_request(path)
+        } else if path.starts_with("/inv") && matches!(req.method, HttpMethod::POST(_)) {
+            crate::ledger::handle_inv_request(&req.body)
+        } else if path.starts_with("/block") && matches!(req.method, HttpMethod::POST(_)) {
+            crate::ledger::handle_block_request(&req.body)
+        } else {
+            json!({"status": "ok", "message": "P2P node active"}).to_string()
+        };
 
         let response = format!(
             "HTTP/1.0 200 OK\r\n\
             Content-Length: {}\r\n\
-            Content-Type: text/plain\r\n\
+            Content-Type: application/json\r\n\
             \r\n\
             {}",
             body.len(),
             body
         );
 
-        stream.write_all(response.as_bytes()).unwrap();
+        let _ = stream.write_all(response.as_bytes());
     }
 }
