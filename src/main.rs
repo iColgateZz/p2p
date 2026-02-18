@@ -87,7 +87,11 @@ fn main() {
     ledger::init_genesis_block();
     println!();
 
-    peers::start_discovery_thread();
+    let rt =  tokio::runtime::Runtime::new()
+        .expect("[SERVER] Async runtime could not be started");
+    rt.spawn(async {
+        peers::discovery_loop().await;
+    });
 
     let listener = match TcpListener::bind(&addr) {
         Ok(l) => {
