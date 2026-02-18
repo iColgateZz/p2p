@@ -1,10 +1,7 @@
-use p2p::http::{HttpParseError, HttpRequest, HttpResponse};
+use p2p::http_server;
 use p2p::ledger;
 use p2p::peers;
-use p2p::threadpool::ThreadPool;
 use std::fs;
-use std::io::Read;
-use std::net::{TcpListener, TcpStream};
 
 fn load_config(port: u16) -> Vec<(String, u16)> {
     let config_file = format!("peers_config_{}.json", port);
@@ -30,38 +27,6 @@ fn load_config(port: u16) -> Vec<(String, u16)> {
     Vec::new()
 }
 
-fn handle_client(mut stream: TcpStream) {
-    let mut buf = Vec::new();
-    let mut tmp = [0u8; 4096];
-
-    loop {
-        match stream.read(&mut tmp) {
-            Ok(0) => return, // client closed
-            Ok(n) => {
-                buf.extend_from_slice(&tmp[..n]);
-
-                match HttpRequest::try_from(&buf) {
-                    Ok(req) => {
-                        println!("[SERVER] Received request: {:?}", req.method);
-                        HttpResponse::respond(&mut stream, req);
-                        return;
-                    }
-
-                    Err(HttpParseError::Incomplete) => {
-                        continue;
-                    }
-
-                    Err(e) => {
-                        eprintln!("[SERVER] Parse error: {:?}", e);
-                        return;
-                    }
-                }
-            }
-            Err(_) => return,
-        }
-    }
-}
-
 fn main() {
     let port: u16 = std::env::args()
         .nth(1)
@@ -72,50 +37,28 @@ fn main() {
 
     println!("========================================");
     println!("P2P Distributed Ledger Node");
-    println!("Listening on: {}", addr);
+    println!("Starting on: {}", addr);
     println!("========================================\n");
 
-    peers::set_self_peer("127.0.0.1".to_string(), port);
+    let ip = "127.0.0.1";
+    peers::set_self_peer(ip.to_string(), port);
+    println!("[PEERS] Self peer set to: {}:{}", ip, port);
 
     // Load bootstrap peers from config
     let bootstrap_peers = load_config(port);
     if !bootstrap_peers.is_empty() {
         peers::add_bootstrap_peers(bootstrap_peers);
-        println!("[INIT] Bootstrap peers loaded\n");
+        println!("[PEERS] Bootstrap peers loaded\n");
     }
 
     ledger::init_genesis_block();
     println!();
 
     let rt =  tokio::runtime::Runtime::new()
-        .expect("[SERVER] Async runtime could not be started");
+        .expect("[ERROR] Async runtime could not be started");
     rt.spawn(async {
         peers::discovery_loop().await;
     });
 
-    let listener = match TcpListener::bind(&addr) {
-        Ok(l) => {
-            println!("[SERVER] TCP listener bound successfully\n");
-            l
-        }
-        Err(e) => {
-            eprintln!("[SERVER] Failed to bind: {}", e);
-            return;
-        }
-    };
-
-    let pool = ThreadPool::new(20);
-
-    println!("[SERVER] Waiting for connections...\n");
-
-    for stream in listener.incoming() {
-        match stream {
-            Ok(stream) => {
-                pool.execute(|| {
-                    handle_client(stream);
-                });
-            }
-            Err(e) => eprintln!("[SERVER] Accept error: {}", e),
-        }
-    }
+    http_server::start_http_server(&addr);
 }

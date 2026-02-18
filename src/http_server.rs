@@ -1,7 +1,67 @@
 use serde_json::json;
 use std::collections::HashMap;
-use std::io::Write;
-use std::net::TcpStream;
+use std::io::{Write, Read};
+use std::net::{TcpStream, TcpListener};
+use crate::threadpool::ThreadPool;
+
+pub fn start_http_server(addr: &str) {
+    let listener = match TcpListener::bind(&addr) {
+        Ok(l) => {
+            println!("[SERVER] TCP listener bound successfully\n");
+            l
+        }
+        Err(e) => {
+            eprintln!("[ERROR] Failed to bind: {}", e);
+            return;
+        }
+    };
+
+    let pool = ThreadPool::new(20);
+
+    println!("[SERVER] Waiting for connections...\n");
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                pool.execute(|| {
+                    handle_client(stream);
+                });
+            }
+            Err(e) => eprintln!("[ERROR] Accept error: {}", e),
+        }
+    }
+}
+
+fn handle_client(mut stream: TcpStream) {
+    let mut buf = Vec::new();
+    let mut tmp = [0u8; 4096];
+
+    loop {
+        match stream.read(&mut tmp) {
+            Ok(0) => return, // client closed
+            Ok(n) => {
+                buf.extend_from_slice(&tmp[..n]);
+
+                match HttpRequest::try_from(&buf) {
+                    Ok(req) => {
+                        println!("[SERVER] Received request: {:?}", req.method);
+                        HttpResponse::respond(&mut stream, req);
+                        return;
+                    }
+
+                    Err(HttpParseError::Incomplete) => {
+                        continue;
+                    }
+
+                    Err(e) => {
+                        eprintln!("[ERROR] Parse error: {:?}", e);
+                        return;
+                    }
+                }
+            }
+            Err(_) => return,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum HttpMethod {

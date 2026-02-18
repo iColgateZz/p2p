@@ -44,11 +44,9 @@ pub fn http_client() -> &'static Client {
 }
 
 pub fn set_self_peer(ip: String, port: u16) {
-    let ip_clone = ip.clone();
     let peer = PeerInfo::new(ip, port);
     let mut self_peer = SELF_PEER.lock().unwrap();
     *self_peer = Some(peer);
-    println!("[PEERS] Self peer set to: {}:{}", ip_clone, port);
 }
 
 pub fn add_bootstrap_peers(peers: Vec<(String, u16)>) {
