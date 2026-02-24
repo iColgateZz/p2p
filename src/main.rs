@@ -1,7 +1,6 @@
 use p2p::http_server;
 use p2p::ledger;
-use p2p::node_client;
-use p2p::node_server;
+use p2p::node;
 use p2p::peers;
 use std::fs;
 
@@ -58,8 +57,8 @@ fn main() {
 
     let rt = tokio::runtime::Runtime::new().expect("[ERROR] Async runtime could not be started");
     rt.spawn(async {
-        node_client::discovery_loop().await;
+        node::client::discovery_loop().await;
     });
 
-    http_server::start(&addr, node_server::RequestHandler);
+    http_server::start(&addr, node::server::RequestHandler);
 }

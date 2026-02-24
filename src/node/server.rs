@@ -1,6 +1,6 @@
 use crate::http_server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
-use crate::node_client;
+use crate::node::client;
 use crate::peers;
 use serde_json::{Value, json};
 
@@ -18,7 +18,7 @@ impl HttpHandler for RequestHandler {
             HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(&body),
             HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
 
-            _ => HttpResult::err(501, "not implemented")
+            _ => HttpResult::err(501, "not implemented"),
         };
 
         result
@@ -104,7 +104,7 @@ fn post_inv(body: &str) -> HttpResult {
     match (hash, tx_data) {
         (Some(hash), Some(tx_data)) => {
             if ledger::add_transaction(hash, tx_data) {
-                node_client::broadcast_transaction(hash, tx_data);
+                client::broadcast_transaction(hash, tx_data);
                 HttpResult::ok_json(json!({ "message": "Transaction accepted" }))
             } else {
                 HttpResult::ok_json(json!({
@@ -140,7 +140,7 @@ fn post_block(body: &str) -> HttpResult {
     match (hash, content) {
         (Some(hash), Some(content)) => {
             if ledger::add_block(hash, content) {
-                node_client::broadcast_block(hash, content);
+                client::broadcast_block(hash, content);
 
                 HttpResult::ok_json(json!({
                     "message": "Block accepted"
