@@ -1,8 +1,8 @@
 use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
-use crate::node::client;
+use crate::node::{client, protocol::*};
 use crate::peers;
-use serde_json::{Value, json};
+use serde_json::json;
 
 pub struct RequestHandler;
 
@@ -28,9 +28,9 @@ impl HttpHandler for RequestHandler {
 fn get_addr() -> HttpResult {
     let peers = peers::get_known_peers();
 
-    let peer_list: Vec<Value> = peers
-        .iter()
-        .map(|p| json!({ "ip": p.ip, "port": p.port }))
+    let peer_list: Vec<PeerDto> = peers
+        .into_iter()
+        .map(|p| PeerDto { ip: p.ip, port: p.port })
         .collect();
 
     HttpResult::ok_json(json!({
@@ -86,77 +86,33 @@ fn get_getdata(path: &str) -> HttpResult {
 }
 
 fn post_inv(body: &str) -> HttpResult {
-    let data: Value = match serde_json::from_str(body) {
+    let req: InvRequest = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
-            return HttpResult::json(
-                400,
-                json!({
-                    "error": format!("JSON parse error: {}", e)
-                }),
-            );
+            return HttpResult::err(400, &format!("JSON parse error: {}", e));
         }
     };
 
-    let hash = data.get("hash").and_then(|v| v.as_str());
-    let tx_data = data.get("data").and_then(|v| v.as_str());
-
-    match (hash, tx_data) {
-        (Some(hash), Some(tx_data)) => {
-            if ledger::add_transaction(hash, tx_data) {
-                client::broadcast_transaction(hash, tx_data);
-                HttpResult::ok_json(json!({ "message": "Transaction accepted" }))
-            } else {
-                HttpResult::ok_json(json!({
-                    "message": "Transaction already exists"
-                }))
-            }
-        }
-        _ => HttpResult::json(
-            400,
-            json!({
-                "error": "Invalid transaction format"
-            }),
-        ),
+    if ledger::add_transaction(&req.hash, &req.data) {
+        client::broadcast_transaction(&req.hash, &req.data);
+        HttpResult::ok_json(json!({ "message": "Transaction accepted" }))
+    } else {
+        HttpResult::ok_json(json!({"message": "Transaction already exists"}))
     }
 }
 
 fn post_block(body: &str) -> HttpResult {
-    let data: Value = match serde_json::from_str(body) {
+    let req: BlockRequest = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
-            return HttpResult::json(
-                400,
-                json!({
-                    "error": format!("JSON parse error: {}", e)
-                }),
-            );
+            return HttpResult::err(400, &format!("JSON parse error: {}", e));
         }
     };
 
-    let hash = data.get("hash").and_then(|v| v.as_str());
-    let content = data.get("content").and_then(|v| v.as_str());
-
-    match (hash, content) {
-        (Some(hash), Some(content)) => {
-            if ledger::add_block(hash, content) {
-                client::broadcast_block(hash, content);
-
-                HttpResult::ok_json(json!({
-                    "message": "Block accepted"
-                }))
-            } else {
-                HttpResult::ok_json(json!({
-                    "message": "Block already exists"
-                }))
-            }
-        }
-
-        _ => HttpResult::json(
-            400,
-            json!({
-                "error": "Invalid block format"
-            }),
-        ),
+    if ledger::add_block(&req.hash, &req.content) {
+        client::broadcast_block(&req.hash, &req.content);
+        HttpResult::ok_json(json!({"message": "Block accepted"}))
+    } else {
+        HttpResult::ok_json(json!({"message": "Block already exists"}))
     }
 }
