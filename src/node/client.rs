@@ -1,4 +1,4 @@
-use crate::peers::{self, PeerInfo};
+use crate::peers::{self, Peer};
 use futures::future::join_all;
 use reqwest::Client;
 use serde_json::{Value, json};
@@ -86,7 +86,7 @@ pub async fn fetch_blocks_from_peers() {
     join_all(futures).await;
 }
 
-async fn fetch_block(peer: &PeerInfo, hash: &str) {
+async fn fetch_block(peer: &Peer, hash: &str) {
     let client = http_client();
     let url = peer.to_url(&format!("/getdata/{}", hash));
     let hash_owned = hash.to_string();
