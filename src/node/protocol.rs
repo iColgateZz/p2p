@@ -9,7 +9,6 @@ pub struct PeerDto {
 #[derive(Serialize, Deserialize)]
 pub struct PeersDto {
     pub peers: Vec<PeerDto>,
-    pub count: usize,
 }
 
 #[derive(Serialize, Deserialize)]

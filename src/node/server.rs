@@ -38,7 +38,6 @@ fn get_peers() -> HttpResult {
 
     HttpResult::ok_json(json!({
         "peers": peer_list,
-        "count": peer_list.len()
     }))
 }
 

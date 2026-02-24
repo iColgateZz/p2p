@@ -1,7 +1,7 @@
 Suhtlus:
 
 GET /peers -> teadaolevad node'id
-200 { peers: [ { ip: String, port: u16 } ], count: peers.len() }
+200 { peers: [ { ip: String, port: u16 } ] }
 
 
 GET /hashes -> all hashes
