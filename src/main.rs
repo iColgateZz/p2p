@@ -1,6 +1,6 @@
 use p2p::http_server;
 use p2p::ledger;
-use p2p::node_handler::NodeHandler;
+use p2p::node_server;
 use p2p::peers;
 use std::fs;
 
@@ -60,5 +60,5 @@ fn main() {
         peers::discovery_loop().await;
     });
 
-    http_server::start(&addr, NodeHandler);
+    http_server::start(&addr, node_server::RequestHandler);
 }

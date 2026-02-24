@@ -3,9 +3,9 @@ use crate::ledger;
 use crate::peers;
 use serde_json::{Value, json};
 
-pub struct NodeHandler;
+pub struct RequestHandler;
 
-impl HttpHandler for NodeHandler {
+impl HttpHandler for RequestHandler {
     fn handle(&self, req: HttpRequest) -> HttpResult {
         let HttpRequest { method, body, .. } = req;
 
