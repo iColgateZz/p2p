@@ -3,7 +3,7 @@ use crate::ledger;
 use crate::node::protocol::{HashesDto, PeersDto};
 use crate::node::{
     client,
-    protocol::{BlockDto, PeerDto, TransactionDto, Message},
+    protocol::{BlockDto, Message, PeerDto, TransactionDto},
 };
 use crate::peers;
 
@@ -21,7 +21,7 @@ impl HttpHandler for RequestHandler {
             HttpMethod::POST(path) if path.starts_with("/transaction") => post_transaction(&body),
             HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
 
-            _ => HttpResult::err(501, "not implemented"),
+            _ => HttpResult::not_impl(),
         };
 
         result
@@ -53,14 +53,14 @@ fn get_hashes(path: &str) -> HttpResult {
             let hashes = ledger::get_block_hashes_from(start_hash);
             HttpResult::ok(&HashesDto { hashes })
         }
-        None => HttpResult::err(400, "Invalid request"),
+        None => HttpResult::bad_req(),
     }
 }
 
 fn get_block(path: &str) -> HttpResult {
     let hash = match path.split('/').nth(2) {
         Some(h) => h,
-        None => return HttpResult::err(400, "Invalid request"),
+        None => return HttpResult::bad_req(),
     };
 
     match ledger::get_block(hash) {
@@ -70,38 +70,46 @@ fn get_block(path: &str) -> HttpResult {
             timestamp: block.timestamp,
         }),
 
-        None => HttpResult::err(404,"Block not found"),
+        None => HttpResult::not_found(),
     }
 }
 
 fn post_transaction(body: &str) -> HttpResult {
     let transaction: TransactionDto = match serde_json::from_str(body) {
         Ok(v) => v,
-        Err(e) => {
-            return HttpResult::err(400, &format!("JSON parse error: {}", e));
+        Err(_) => {
+            return HttpResult::bad_req();
         }
     };
 
     if ledger::add_transaction(&transaction.hash, &transaction.data) {
         client::broadcast_transaction(&transaction.hash, &transaction.data);
-        HttpResult::created(&Message { message: "Transaction accepted" })
+        HttpResult::created(&Message {
+            message: "Transaction accepted",
+        })
     } else {
-        HttpResult::ok(&Message { message: "Transaction already exists" })
+        HttpResult::ok(&Message {
+            message: "Transaction already exists",
+        })
     }
 }
 
 fn post_block(body: &str) -> HttpResult {
     let block: BlockDto = match serde_json::from_str(body) {
         Ok(v) => v,
-        Err(e) => {
-            return HttpResult::err(400, &format!("JSON parse error: {}", e));
+        Err(_) => {
+            return HttpResult::bad_req();
         }
     };
 
     if ledger::add_block(&block.hash, &block.content) {
         client::broadcast_block(&block.hash, &block.content);
-        HttpResult::created(&Message { message: "Block accepted" })
+        HttpResult::created(&Message {
+            message: "Block accepted",
+        })
     } else {
-        HttpResult::ok(&Message { message: "Block already exists" })
+        HttpResult::ok(&Message {
+            message: "Block already exists",
+        })
     }
 }

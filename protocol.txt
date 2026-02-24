@@ -10,24 +10,24 @@ GET /hashes -> all hashes
 
 GET /hashes/Z -> all hashes starting from hash Z
 200 { hashes: [ hash: String ] }
-400 { error: Invalid request }
+400 { error: Bad request }
 
 
 GET /block/Z -> get data about block with hash Z
 200 { hash: Z, content: String, timestamp: Time }
-400 { error: Invalid request }
-404 { error: Block not found, hash: Z }
+400 { error: Bad request }
+404 { error: Not found }
 
 
 POST /transaction -> add a new transaction to the node
 BODY: { hash: Hash of transaction, data: Data of the transaction }
 201 { message: Transaction accepted }
 200 { message: Transaction already exists }
-400 { error: JSON parse error }
+400 { error: Bad request }
 
 
 POST /block -> add a new block to the node
 BODY: { hash: Hash of block, data: Data of the block }
 201 { message: Block accepted }
 200 { message: Block already exists }
-400 { error: JSON parse error }
+400 { error: Bad request }

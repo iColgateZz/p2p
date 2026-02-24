@@ -44,6 +44,18 @@ impl HttpResult {
 
         Self::json(status, &ErrorResponse { error: msg })
     }
+
+    pub fn not_found() -> Self {
+        Self::err(404, "Not found")
+    }
+
+    pub fn bad_req() -> Self {
+        Self::err(400, "Bad request")
+    }
+
+    pub fn not_impl() -> Self {
+        Self::err(501, "Not implemented")
+    }
 }
 
 pub fn start<H: HttpHandler>(addr: &str, handler: H) {
