@@ -174,13 +174,10 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
 
     tokio::spawn(async move {
         let peers = get_known_peers();
-        let client = http_client();
-        let body = json!({ "hash": hash_owned, "data": data_owned }).to_string();
 
         let futures = peers.into_iter().map(|peer| {
-            let client = client.clone();
-            let peer_clone = peer.clone();
-            let body_clone = body.clone();
+            let client = http_client();
+            let body = json!({ "hash": hash_owned, "data": data_owned }).to_string();
             let hash_clone = hash_owned.clone();
             let url = peer.to_url("/inv");
 
@@ -188,7 +185,7 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
                 if let Err(e) = client
                     .post(&url)
                     .header("Content-Type", "application/json")
-                    .body(body_clone)
+                    .body(body)
                     .send()
                     .await
                 {
@@ -196,7 +193,7 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
                 } else {
                     println!(
                         "[BROADCAST] Transaction {} sent to {}:{}",
-                        hash_clone, peer_clone.ip, peer_clone.port
+                        hash_clone, peer.ip, peer.port
                     );
                 }
             }
@@ -212,12 +209,10 @@ pub fn broadcast_block(hash: &str, content: &str) {
 
     tokio::spawn(async move {
         let peers = get_known_peers();
-        let body = json!({ "hash": hash_owned, "content": content_owned }).to_string();
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
-            let peer_clone = peer.clone();
-            let body_clone = body.clone();
+            let body = json!({ "hash": hash_owned, "content": content_owned }).to_string();
             let hash_clone = hash_owned.clone();
             let url = peer.to_url("/block");
 
@@ -225,7 +220,7 @@ pub fn broadcast_block(hash: &str, content: &str) {
                 if let Err(e) = client
                     .post(&url)
                     .header("Content-Type", "application/json")
-                    .body(body_clone)
+                    .body(body)
                     .send()
                     .await
                 {
@@ -233,7 +228,7 @@ pub fn broadcast_block(hash: &str, content: &str) {
                 } else {
                     println!(
                         "[BROADCAST] Block {} sent to {}:{}",
-                        hash_clone, peer_clone.ip, peer_clone.port
+                        hash_clone, peer.ip, peer.port
                     );
                 }
             }
