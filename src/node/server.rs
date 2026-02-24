@@ -93,7 +93,7 @@ fn post_transaction(body: &str) -> HttpResult {
 
     if ledger::add_transaction(&transaction.hash, &transaction.data) {
         client::broadcast_transaction(&transaction.hash, &transaction.data);
-        HttpResult::ok_json(json!({"message": "Transaction accepted"}))
+        HttpResult::json(201, json!({"message": "Transaction accepted"}))
     } else {
         HttpResult::ok_json(json!({"message": "Transaction already exists"}))
     }
@@ -109,7 +109,7 @@ fn post_block(body: &str) -> HttpResult {
 
     if ledger::add_block(&block.hash, &block.content) {
         client::broadcast_block(&block.hash, &block.content);
-        HttpResult::ok_json(json!({"message": "Block accepted"}))
+        HttpResult::json(201, json!({"message": "Block accepted"}))
     } else {
         HttpResult::ok_json(json!({"message": "Block already exists"}))
     }

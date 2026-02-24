@@ -21,15 +21,13 @@ GET /block/Z -> get data about block with hash Z
 
 POST /transaction -> add a new transaction to the node
 BODY: { hash: Hash of transaction, data: Data of the transaction }
-200 { message: Transaction accepted }
+201 { message: Transaction accepted }
 200 { message: Transaction already exists }
 400 { error: JSON parse error }
-400 { error: Invalid transaction format }
 
 
 POST /block -> add a new block to the node
 BODY: { hash: Hash of block, data: Data of the block }
-200 { message: Block accepted }
+201 { message: Block accepted }
 200 { message: Block already exists }
 400 { error: JSON parse error }
-400 { error: Invalid block format }
