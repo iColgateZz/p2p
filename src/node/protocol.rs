@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Serialize, Deserialize)]
 pub struct PeerDto {
     pub ip: String,
@@ -27,13 +26,13 @@ pub struct GetDataResponse {
     pub found: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct InvRequest {
     pub hash: String,
     pub data: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct BlockRequest {
     pub hash: String,
     pub content: String,

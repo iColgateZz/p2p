@@ -1,6 +1,9 @@
 use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
-use crate::node::{client, protocol::*};
+use crate::node::{
+    client,
+    protocol::{BlockRequest, InvRequest, PeerDto},
+};
 use crate::peers;
 use serde_json::json;
 
@@ -30,7 +33,7 @@ fn get_addr() -> HttpResult {
 
     let peer_list: Vec<PeerDto> = peers
         .into_iter()
-        .map(|p| PeerDto { ip: p.ip, port: p.port })
+        .map(|p| PeerDto { ip: p.ip, port: p.port, })
         .collect();
 
     HttpResult::ok_json(json!({
