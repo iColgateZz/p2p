@@ -53,7 +53,7 @@ fn get_hashes(path: &str) -> HttpResult {
 
     match path.split('/').nth(2) {
         Some(start_hash) => {
-            let hashes = ledger::get_blocks_from(start_hash);
+            let hashes = ledger::get_block_hashes_from(start_hash);
             HttpResult::ok_json(json!({
                 "blocks": hashes,
                 "count": hashes.len()

@@ -103,7 +103,7 @@ pub fn get_all_block_hashes() -> Vec<String> {
     hashes.clone()
 }
 
-pub fn get_blocks_from(start_hash: &str) -> Vec<String> {
+pub fn get_block_hashes_from(start_hash: &str) -> Vec<String> {
     let hashes = BLOCK_HASHES.lock().unwrap();
 
     if let Some(pos) = hashes.iter().position(|h| h == start_hash) {
