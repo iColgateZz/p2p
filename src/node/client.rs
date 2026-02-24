@@ -1,5 +1,6 @@
 use crate::ledger;
 use crate::node::protocol::{BlockDto, HashesDto, PeersDto, TransactionDto};
+use crate::node::route::Route;
 use crate::peers::{self, Peer};
 use futures::future::join_all;
 use reqwest::Client;
@@ -22,7 +23,7 @@ pub async fn discover_peers() {
 
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
-        let url = peer.to_url("/peers");
+        let url = peer.to_url(&Route::GetPeers.to_path());
 
         async move {
             match client.get(&url).send().await {
@@ -48,7 +49,7 @@ pub async fn fetch_blocks_from_peers() {
 
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
-        let url = peer.to_url("/hashes");
+        let url = peer.to_url(&Route::GetHashes.to_path());
 
         async move {
             println!("[SYNC] Fetching blocks from: {}", url);
@@ -73,7 +74,7 @@ pub async fn fetch_blocks_from_peers() {
 
 async fn fetch_block(peer: &Peer, hash: &str) {
     let client = http_client();
-    let url = peer.to_url(&format!("/block/{}", hash));
+    let url = peer.to_url(&Route::GetBlock(hash.into()).to_path());
 
     let Ok(resp) = client.get(&url).send().await else {
         return;
@@ -98,7 +99,7 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
-            let url = peer.to_url("/transaction");
+            let url = peer.to_url(&Route::PostTransaction.to_path());
             let req = req.clone();
 
             async move {
@@ -122,7 +123,7 @@ pub fn broadcast_block(hash: &str, content: &str) {
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
-            let url = peer.to_url("/block");
+            let url = peer.to_url(&Route::PostBlock.to_path());
             let req = req.clone();
 
             async move {
