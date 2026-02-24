@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-//
-// --- Peer / Discovery ---
-//
 
 #[derive(Serialize, Deserialize)]
 pub struct PeerDto {
@@ -15,10 +12,6 @@ pub struct AddrResponse {
     pub peers: Vec<PeerDto>,
     pub count: usize,
 }
-
-//
-// --- Blocks ---
-//
 
 #[derive(Serialize, Deserialize)]
 pub struct GetBlocksResponse {
@@ -33,10 +26,6 @@ pub struct GetDataResponse {
     pub timestamp: u64,
     pub found: bool,
 }
-
-//
-// --- Transactions ---
-//
 
 #[derive(Serialize, Deserialize)]
 pub struct InvRequest {
