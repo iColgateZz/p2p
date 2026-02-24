@@ -18,11 +18,7 @@ impl HttpHandler for RequestHandler {
             HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(&body),
             HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
 
-            _ => HttpResult {
-                status: 501,
-                body: json!({"error": "not implemented"}).to_string(),
-                content_type: "application/json",
-            },
+            _ => HttpResult::err(501, "not implemented")
         };
 
         result
