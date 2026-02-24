@@ -13,7 +13,7 @@ GET /hashes/Z -> all hashes starting from hash Z
 400 { error: Invalid request }
 
 
-GET /getdata/Z -> get data about block with hash Z
+GET /block/Z -> get data about block with hash Z
 200 { hash: Z, content: String, timestamp: Time, found: true }
 400 { error: Invalid request }
 404 { error: Block not found, hash: Z, found: false }

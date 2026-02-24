@@ -1,6 +1,6 @@
 use crate::ledger;
 use crate::node::protocol::{
-    PeersDto, BlockRequest, HashesDto, GetDataResponse, InvRequest,
+    PeersDto, BlockRequest, HashesDto, BlockDto, InvRequest,
 };
 use crate::peers::{self, Peer};
 use futures::future::join_all;
@@ -75,10 +75,10 @@ pub async fn fetch_blocks_from_peers() {
 
 async fn fetch_block(peer: &Peer, hash: &str) {
     let client = http_client();
-    let url = peer.to_url(&format!("/getdata/{}", hash));
+    let url = peer.to_url(&format!("/block/{}", hash));
 
     if let Ok(resp) = client.get(&url).send().await {
-        if let Ok(data) = resp.json::<GetDataResponse>().await {
+        if let Ok(data) = resp.json::<BlockDto>().await {
             if data.found {
                 ledger::add_block(&data.hash, &data.content);
             }

@@ -16,7 +16,7 @@ impl HttpHandler for RequestHandler {
         let result = match method {
             HttpMethod::GET(path) if path.starts_with("/peers") => get_peers(),
             HttpMethod::GET(path) if path.starts_with("/hashes") => get_hashes(&path),
-            HttpMethod::GET(path) if path.starts_with("/getdata") => get_getdata(&path),
+            HttpMethod::GET(path) if path.starts_with("/block") => get_block(&path),
 
             HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(&body),
             HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
@@ -63,7 +63,7 @@ fn get_hashes(path: &str) -> HttpResult {
     }
 }
 
-fn get_getdata(path: &str) -> HttpResult {
+fn get_block(path: &str) -> HttpResult {
     let hash = match path.split('/').nth(2) {
         Some(h) => h,
         None => return HttpResult::err(400, "Invalid request"),

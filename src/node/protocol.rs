@@ -19,7 +19,7 @@ pub struct HashesDto {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct GetDataResponse {
+pub struct BlockDto {
     pub hash: String,
     pub content: String,
     pub timestamp: u64,
