@@ -1,6 +1,6 @@
 use crate::http_server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
-use serde_json::{json, Value};
 use crate::peers;
+use serde_json::{Value, json};
 
 pub struct NodeHandler;
 

@@ -1,6 +1,6 @@
 use p2p::http_server;
-use p2p::node_handler::NodeHandler;
 use p2p::ledger;
+use p2p::node_handler::NodeHandler;
 use p2p::peers;
 use std::fs;
 
@@ -55,8 +55,7 @@ fn main() {
     ledger::init_genesis_block();
     println!();
 
-    let rt =  tokio::runtime::Runtime::new()
-        .expect("[ERROR] Async runtime could not be started");
+    let rt = tokio::runtime::Runtime::new().expect("[ERROR] Async runtime could not be started");
     rt.spawn(async {
         peers::discovery_loop().await;
     });

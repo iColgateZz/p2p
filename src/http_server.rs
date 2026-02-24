@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use std::io::{Write, Read};
-use std::net::{TcpStream, TcpListener};
-use std::sync::Arc;
 use crate::threadpool::ThreadPool;
+use std::collections::HashMap;
+use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::sync::Arc;
 
 pub trait HttpHandler: Send + Sync + 'static {
     fn handle(&self, request: HttpRequest) -> HttpResult;
