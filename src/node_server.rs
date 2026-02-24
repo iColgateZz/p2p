@@ -77,11 +77,14 @@ fn get_getdata(path: &str) -> HttpResult {
             "found": true
         })),
 
-        None => HttpResult::json(404, json!({
-            "error": "Block not found",
-            "hash": hash,
-            "found": false
-        })),
+        None => HttpResult::json(
+            404,
+            json!({
+                "error": "Block not found",
+                "hash": hash,
+                "found": false
+            }),
+        ),
     }
 }
 
@@ -89,9 +92,12 @@ fn post_inv(body: &str) -> HttpResult {
     let data: Value = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
-            return HttpResult::json(400, json!({
-                "error": format!("JSON parse error: {}", e)
-            }));
+            return HttpResult::json(
+                400,
+                json!({
+                    "error": format!("JSON parse error: {}", e)
+                }),
+            );
         }
     };
 
@@ -109,9 +115,12 @@ fn post_inv(body: &str) -> HttpResult {
                 }))
             }
         }
-        _ => HttpResult::json(400, json!({
-            "error": "Invalid transaction format"
-        })),
+        _ => HttpResult::json(
+            400,
+            json!({
+                "error": "Invalid transaction format"
+            }),
+        ),
     }
 }
 
@@ -119,9 +128,12 @@ fn post_block(body: &str) -> HttpResult {
     let data: Value = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
-            return HttpResult::json(400, json!({
-                "error": format!("JSON parse error: {}", e)
-            }))
+            return HttpResult::json(
+                400,
+                json!({
+                    "error": format!("JSON parse error: {}", e)
+                }),
+            );
         }
     };
 
@@ -143,8 +155,11 @@ fn post_block(body: &str) -> HttpResult {
             }
         }
 
-        _ => HttpResult::json(400, json!({
-            "error": "Invalid block format"
-        })),
+        _ => HttpResult::json(
+            400,
+            json!({
+                "error": "Invalid block format"
+            }),
+        ),
     }
 }

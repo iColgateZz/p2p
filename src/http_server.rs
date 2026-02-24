@@ -1,5 +1,5 @@
-use serde_json::json;
 use crate::threadpool::ThreadPool;
+use serde_json::json;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
