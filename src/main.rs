@@ -1,7 +1,7 @@
-use p2p::http_server::{self, HttpHandler, HttpResult, HttpRequest, HttpMethod};
+use p2p::http_server;
+use p2p::node_handler::NodeHandler;
 use p2p::ledger;
 use p2p::peers;
-use serde_json::json;
 use std::fs;
 
 fn load_config(port: u16) -> Vec<(String, u16)> {
@@ -26,30 +26,6 @@ fn load_config(port: u16) -> Vec<(String, u16)> {
 
     // Default bootstrap peers
     Vec::new()
-}
-
-struct P2PHandler;
-
-impl HttpHandler for P2PHandler {
-    fn handle(&self, req: HttpRequest) -> HttpResult {
-        let path = req.method.path();
-
-        let body = if path.starts_with("/addr") {
-            crate::peers::get_known_peers_json()
-        } else if path.starts_with("/getblocks") {
-            crate::ledger::handle_getblocks_request(path)
-        } else if path.starts_with("/getdata") {
-            crate::ledger::handle_getdata_request(path)
-        } else if path.starts_with("/inv") && matches!(req.method, HttpMethod::POST(_)) {
-            crate::ledger::handle_inv_request(&req.body)
-        } else if path.starts_with("/block") && matches!(req.method, HttpMethod::POST(_)) {
-            crate::ledger::handle_block_request(&req.body)
-        } else {
-            json!({"status": "ok", "message": "P2P node active"}).to_string()
-        };
-
-        HttpResult { status: 200, body, content_type: "application/json" }
-    }
 }
 
 fn main() {
@@ -85,5 +61,5 @@ fn main() {
         peers::discovery_loop().await;
     });
 
-    http_server::start(&addr, P2PHandler);
+    http_server::start(&addr, NodeHandler);
 }

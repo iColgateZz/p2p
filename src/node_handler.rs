@@ -1,0 +1,26 @@
+use crate::http_server::{HttpHandler, HttpResult, HttpRequest, HttpMethod};
+use serde_json::json;
+
+pub struct NodeHandler;
+
+impl HttpHandler for NodeHandler {
+    fn handle(&self, req: HttpRequest) -> HttpResult {
+        let path = req.method.path();
+
+        let body = if path.starts_with("/addr") {
+            crate::peers::get_known_peers_json()
+        } else if path.starts_with("/getblocks") {
+            crate::ledger::handle_getblocks_request(path)
+        } else if path.starts_with("/getdata") {
+            crate::ledger::handle_getdata_request(path)
+        } else if path.starts_with("/inv") && matches!(req.method, HttpMethod::POST(_)) {
+            crate::ledger::handle_inv_request(&req.body)
+        } else if path.starts_with("/block") && matches!(req.method, HttpMethod::POST(_)) {
+            crate::ledger::handle_block_request(&req.body)
+        } else {
+            json!({"status": "ok", "message": "P2P node active"}).to_string()
+        };
+
+        HttpResult { status: 200, body, content_type: "application/json" }
+    }
+}
