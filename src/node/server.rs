@@ -74,7 +74,6 @@ fn get_block(path: &str) -> HttpResult {
             "hash": block.hash,
             "content": block.content,
             "timestamp": block.timestamp,
-            "found": true
         })),
 
         None => HttpResult::json(
@@ -82,7 +81,6 @@ fn get_block(path: &str) -> HttpResult {
             json!({
                 "error": "Block not found",
                 "hash": hash,
-                "found": false
             }),
         ),
     }

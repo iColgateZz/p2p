@@ -14,9 +14,9 @@ GET /hashes/Z -> all hashes starting from hash Z
 
 
 GET /block/Z -> get data about block with hash Z
-200 { hash: Z, content: String, timestamp: Time, found: true }
+200 { hash: Z, content: String, timestamp: Time }
 400 { error: Invalid request }
-404 { error: Block not found, hash: Z, found: false }
+404 { error: Block not found, hash: Z }
 
 
 POST /transaction -> add a new transaction to the node

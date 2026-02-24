@@ -4,7 +4,7 @@ use crate::node::protocol::{
 };
 use crate::peers::{self, Peer};
 use futures::future::join_all;
-use reqwest::Client;
+use reqwest::{Client, Response, StatusCode};
 use std::sync::OnceLock;
 use tokio::time::{Duration, sleep};
 
@@ -77,12 +77,13 @@ async fn fetch_block(peer: &Peer, hash: &str) {
     let client = http_client();
     let url = peer.to_url(&format!("/block/{}", hash));
 
-    if let Ok(resp) = client.get(&url).send().await {
-        if let Ok(data) = resp.json::<BlockDto>().await {
-            if data.found {
-                ledger::add_block(&data.hash, &data.content);
-            }
-        }
+    let Ok(resp) = client.get(&url).send().await else { return };
+    if !resp.status().is_success() {
+        return;
+    }
+
+    if let Ok(block) = resp.json::<BlockDto>().await {
+        ledger::add_block(&block.hash, &block.content);
     }
 }
 
@@ -114,7 +115,6 @@ pub fn broadcast_block(hash: &str, content: &str) {
         hash: hash.to_string(),
         content: content.to_string(),
         timestamp: 0,
-        found: false,
     };
 
     tokio::spawn(async move {

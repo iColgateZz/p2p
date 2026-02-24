@@ -23,7 +23,6 @@ pub struct BlockDto {
     pub hash: String,
     pub content: String,
     pub timestamp: u64,
-    pub found: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
