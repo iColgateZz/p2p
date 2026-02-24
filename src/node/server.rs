@@ -2,7 +2,7 @@ use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
 use crate::node::{
     client,
-    protocol::{BlockDto, TransactionDto, PeerDto},
+    protocol::{BlockDto, PeerDto, TransactionDto},
 };
 use crate::peers;
 use serde_json::json;

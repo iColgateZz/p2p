@@ -1,10 +1,8 @@
 use crate::ledger;
-use crate::node::protocol::{
-    PeersDto, BlockDto, HashesDto, TransactionDto,
-};
+use crate::node::protocol::{BlockDto, HashesDto, PeersDto, TransactionDto};
 use crate::peers::{self, Peer};
 use futures::future::join_all;
-use reqwest::{Client, Response, StatusCode};
+use reqwest::Client;
 use std::sync::OnceLock;
 use tokio::time::{Duration, sleep};
 
@@ -77,7 +75,9 @@ async fn fetch_block(peer: &Peer, hash: &str) {
     let client = http_client();
     let url = peer.to_url(&format!("/block/{}", hash));
 
-    let Ok(resp) = client.get(&url).send().await else { return };
+    let Ok(resp) = client.get(&url).send().await else {
+        return;
+    };
     if !resp.status().is_success() {
         return;
     }
