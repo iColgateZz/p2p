@@ -105,17 +105,6 @@ pub enum HttpMethod {
     DELETE(String),
 }
 
-impl HttpMethod {
-    pub fn path(&self) -> &str {
-        match self {
-            HttpMethod::GET(p)
-            | HttpMethod::POST(p)
-            | HttpMethod::PUT(p)
-            | HttpMethod::DELETE(p) => p,
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct HttpRequest {
     pub method: HttpMethod,
