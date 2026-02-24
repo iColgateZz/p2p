@@ -1,5 +1,6 @@
-use crate::http_server::{HttpHandler, HttpResult, HttpRequest, HttpMethod};
-use serde_json::json;
+use crate::http_server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
+use serde_json::{json, Value};
+use crate::peers;
 
 pub struct NodeHandler;
 
@@ -8,7 +9,7 @@ impl HttpHandler for NodeHandler {
         let path = req.method.path();
 
         let body = if path.starts_with("/addr") {
-            crate::peers::get_known_peers_json()
+            get_known_peers_json()
         } else if path.starts_with("/getblocks") {
             crate::ledger::handle_getblocks_request(path)
         } else if path.starts_with("/getdata") {
@@ -21,6 +22,19 @@ impl HttpHandler for NodeHandler {
             json!({"status": "ok", "message": "P2P node active"}).to_string()
         };
 
-        HttpResult { status: 200, body, content_type: "application/json" }
+        HttpResult {
+            status: 200,
+            body,
+            content_type: "application/json",
+        }
     }
+}
+
+pub fn get_known_peers_json() -> String {
+    let peers = peers::get_known_peers();
+    let peer_list: Vec<Value> = peers
+        .iter()
+        .map(|p| json!({"ip": p.ip, "port": p.port}))
+        .collect();
+    json!({"peers": peer_list, "count": peer_list.len()}).to_string()
 }

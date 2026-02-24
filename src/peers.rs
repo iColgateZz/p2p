@@ -1,12 +1,12 @@
+use futures::future::join_all;
 use lazy_static::lazy_static;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::HashSet;
 use std::sync::Mutex;
-use reqwest::Client;
 use std::sync::OnceLock;
-use futures::future::join_all;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct PeerInfo {
@@ -46,7 +46,9 @@ pub fn http_client() -> &'static Client {
 
 pub fn set_self_peer(ip: String, port: u16) {
     let peer = PeerInfo::new(ip, port);
-    SELF_PEER.set(peer).expect("[ERROR] SELF_PEER value was already set");
+    SELF_PEER
+        .set(peer)
+        .expect("[ERROR] SELF_PEER value was already set");
 }
 
 pub fn add_bootstrap_peers(peers: Vec<(String, u16)>) {
@@ -74,18 +76,9 @@ pub fn get_known_peers() -> Vec<PeerInfo> {
     known.iter().cloned().collect()
 }
 
-pub fn get_known_peers_json() -> String {
-    let peers = get_known_peers();
-    let peer_list: Vec<Value> = peers
-        .iter()
-        .map(|p| json!({"ip": p.ip, "port": p.port}))
-        .collect();
-    json!({"peers": peer_list, "count": peer_list.len()}).to_string()
-}
-
 pub async fn discover_peers() {
     let peers = get_known_peers();
-    
+
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
         let url = peer.to_url("/addr");
@@ -122,7 +115,7 @@ pub async fn discover_peers() {
 
 pub async fn fetch_blocks_from_peers() {
     let peers = get_known_peers();
-    
+
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
         let url = peer.to_url("/getblocks");
@@ -192,7 +185,8 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
             let url = peer.to_url("/inv");
 
             async move {
-                if let Err(e) = client.post(&url)
+                if let Err(e) = client
+                    .post(&url)
                     .header("Content-Type", "application/json")
                     .body(body_clone)
                     .send()
@@ -212,7 +206,6 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
     });
 }
 
-
 pub fn broadcast_block(hash: &str, content: &str) {
     let hash_owned = hash.to_string();
     let content_owned = content.to_string();
@@ -220,7 +213,7 @@ pub fn broadcast_block(hash: &str, content: &str) {
     tokio::spawn(async move {
         let peers = get_known_peers();
         let body = json!({ "hash": hash_owned, "content": content_owned }).to_string();
-        
+
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
             let peer_clone = peer.clone();
@@ -229,7 +222,8 @@ pub fn broadcast_block(hash: &str, content: &str) {
             let url = peer.to_url("/block");
 
             async move {
-                if let Err(e) = client.post(&url)
+                if let Err(e) = client
+                    .post(&url)
                     .header("Content-Type", "application/json")
                     .body(body_clone)
                     .send()
@@ -248,7 +242,6 @@ pub fn broadcast_block(hash: &str, content: &str) {
         join_all(futures).await;
     });
 }
-
 
 pub async fn discovery_loop() {
     loop {
