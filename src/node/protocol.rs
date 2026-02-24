@@ -7,7 +7,7 @@ pub struct PeerDto {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct AddrResponse {
+pub struct PeersDto {
     pub peers: Vec<PeerDto>,
     pub count: usize,
 }

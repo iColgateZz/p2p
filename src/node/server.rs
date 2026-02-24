@@ -14,7 +14,7 @@ impl HttpHandler for RequestHandler {
         let HttpRequest { method, body, .. } = req;
 
         let result = match method {
-            HttpMethod::GET(path) if path.starts_with("/addr") => get_addr(),
+            HttpMethod::GET(path) if path.starts_with("/peers") => get_peers(),
             HttpMethod::GET(path) if path.starts_with("/getblocks") => get_getblocks(&path),
             HttpMethod::GET(path) if path.starts_with("/getdata") => get_getdata(&path),
 
@@ -28,7 +28,7 @@ impl HttpHandler for RequestHandler {
     }
 }
 
-fn get_addr() -> HttpResult {
+fn get_peers() -> HttpResult {
     let peers = peers::get_known_peers();
 
     let peer_list: Vec<PeerDto> = peers

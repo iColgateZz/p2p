@@ -1,6 +1,6 @@
 Responses:
 
-GET /addr -> teadaolevad node'id
+GET /peers -> teadaolevad node'id
 200 { peers: [ { ip: String, port: u16 } ], count: peers.len() }
 
 

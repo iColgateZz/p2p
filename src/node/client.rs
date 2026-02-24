@@ -1,6 +1,6 @@
 use crate::ledger;
 use crate::node::protocol::{
-    AddrResponse, BlockRequest, GetBlocksResponse, GetDataResponse, InvRequest,
+    PeersDto, BlockRequest, GetBlocksResponse, GetDataResponse, InvRequest,
 };
 use crate::peers::{self, Peer};
 use futures::future::join_all;
@@ -24,12 +24,12 @@ pub async fn discover_peers() {
 
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
-        let url = peer.to_url("/addr");
+        let url = peer.to_url("/peers");
 
         async move {
             match client.get(&url).send().await {
                 Ok(r) => {
-                    if let Ok(resp) = r.json::<AddrResponse>().await {
+                    if let Ok(resp) = r.json::<PeersDto>().await {
                         for p in resp.peers {
                             peers::add_peer(p.ip, p.port);
                         }
