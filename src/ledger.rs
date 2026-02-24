@@ -28,6 +28,13 @@ lazy_static! {
     static ref SEEN_TRANSACTIONS: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
 }
 
+pub fn init_genesis_block() {
+    let genesis_content = "Genesis Block";
+    let genesis_hash = compute_hash(genesis_content);
+    add_block(&genesis_hash, genesis_content);
+    println!("[LEDGER] Genesis block created: {}", genesis_hash);
+}
+
 pub fn compute_hash(data: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(data.as_bytes());
@@ -211,13 +218,6 @@ pub fn handle_block_request(body: &str) -> String {
         Err(e) => json!({"status": 0, "errcode": 3, "errmsg": format!("JSON parse error: {}", e)})
             .to_string(),
     }
-}
-
-pub fn init_genesis_block() {
-    let genesis_content = "Genesis Block";
-    let genesis_hash = compute_hash(genesis_content);
-    add_block(&genesis_hash, genesis_content);
-    println!("[LEDGER] Genesis block created: {}", genesis_hash);
 }
 
 pub fn received_block_from_network(hash: &str, content: &str) -> bool {
