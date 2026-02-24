@@ -4,11 +4,11 @@ GET /peers -> teadaolevad node'id
 200 { peers: [ { ip: String, port: u16 } ], count: peers.len() }
 
 
-GET /getblocks -> all hashes
+GET /hashes -> all hashes
 200 { blocks: [ hash: String ], count: blocks.len() }
 
 
-GET /getblocks/Z -> all hashes starting from hash Z
+GET /hashes/Z -> all hashes starting from hash Z
 200 { blocks: [ hash: String ], count: blocks.len() }
 400 { error: Invalid request }
 

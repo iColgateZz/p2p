@@ -15,7 +15,7 @@ impl HttpHandler for RequestHandler {
 
         let result = match method {
             HttpMethod::GET(path) if path.starts_with("/peers") => get_peers(),
-            HttpMethod::GET(path) if path.starts_with("/getblocks") => get_getblocks(&path),
+            HttpMethod::GET(path) if path.starts_with("/hashes") => get_hashes(&path),
             HttpMethod::GET(path) if path.starts_with("/getdata") => get_getdata(&path),
 
             HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(&body),
@@ -42,8 +42,8 @@ fn get_peers() -> HttpResult {
     }))
 }
 
-fn get_getblocks(path: &str) -> HttpResult {
-    if path == "/getblocks" {
+fn get_hashes(path: &str) -> HttpResult {
+    if path == "/hashes" {
         let hashes = ledger::get_all_block_hashes();
         return HttpResult::ok_json(json!({
             "blocks": hashes,

@@ -13,7 +13,7 @@ pub struct PeersDto {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct GetBlocksResponse {
+pub struct HashesDto {
     pub blocks: Vec<String>,
     pub count: usize,
 }
