@@ -30,9 +30,10 @@ impl PeerInfo {
 
 lazy_static! {
     static ref KNOWN_PEERS: Mutex<HashSet<PeerInfo>> = Mutex::new(HashSet::new());
-    static ref SELF_PEER: Mutex<Option<PeerInfo>> = Mutex::new(None);
-    static ref HTTP_CLIENT: OnceLock<Client> = OnceLock::new();
 }
+
+static SELF_PEER: OnceLock<PeerInfo> = OnceLock::new();
+static HTTP_CLIENT: OnceLock<Client> = OnceLock::new();
 
 pub fn http_client() -> &'static Client {
     HTTP_CLIENT.get_or_init(|| {
@@ -45,8 +46,7 @@ pub fn http_client() -> &'static Client {
 
 pub fn set_self_peer(ip: String, port: u16) {
     let peer = PeerInfo::new(ip, port);
-    let mut self_peer = SELF_PEER.lock().unwrap();
-    *self_peer = Some(peer);
+    SELF_PEER.set(peer).expect("[ERROR] SELF_PEER value was already set");
 }
 
 pub fn add_bootstrap_peers(peers: Vec<(String, u16)>) {
