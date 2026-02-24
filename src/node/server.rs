@@ -2,7 +2,7 @@ use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
 use crate::node::{
     client,
-    protocol::{BlockRequest, TransactionDto, PeerDto},
+    protocol::{BlockDto, TransactionDto, PeerDto},
 };
 use crate::peers;
 use serde_json::json;
@@ -105,7 +105,7 @@ fn post_transaction(body: &str) -> HttpResult {
 }
 
 fn post_block(body: &str) -> HttpResult {
-    let req: BlockRequest = match serde_json::from_str(body) {
+    let req: BlockDto = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
             return HttpResult::err(400, &format!("JSON parse error: {}", e));

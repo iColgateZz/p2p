@@ -1,6 +1,6 @@
 use crate::ledger;
 use crate::node::protocol::{
-    PeersDto, BlockRequest, HashesDto, BlockDto, TransactionDto,
+    PeersDto, BlockDto, HashesDto, TransactionDto,
 };
 use crate::peers::{self, Peer};
 use futures::future::join_all;
@@ -110,9 +110,11 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
 }
 
 pub fn broadcast_block(hash: &str, content: &str) {
-    let req = BlockRequest {
+    let req = BlockDto {
         hash: hash.to_string(),
         content: content.to_string(),
+        timestamp: 0,
+        found: false,
     };
 
     tokio::spawn(async move {

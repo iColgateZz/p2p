@@ -18,7 +18,7 @@ pub struct HashesDto {
     pub count: usize,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct BlockDto {
     pub hash: String,
     pub content: String,
@@ -30,10 +30,4 @@ pub struct BlockDto {
 pub struct TransactionDto {
     pub hash: String,
     pub data: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct BlockRequest {
-    pub hash: String,
-    pub content: String,
 }
