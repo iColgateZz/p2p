@@ -1,10 +1,20 @@
-use serde_json::json;
 use std::collections::HashMap;
 use std::io::{Write, Read};
 use std::net::{TcpStream, TcpListener};
+use std::sync::Arc;
 use crate::threadpool::ThreadPool;
 
-pub fn start_http_server(addr: &str) {
+pub trait HttpHandler: Send + Sync + 'static {
+    fn handle(&self, request: HttpRequest) -> HttpResult;
+}
+
+pub struct HttpResult {
+    pub status: u16,
+    pub body: String,
+    pub content_type: &'static str,
+}
+
+pub fn start<H: HttpHandler>(addr: &str, handler: H) {
     let listener = match TcpListener::bind(&addr) {
         Ok(l) => {
             println!("[SERVER] TCP listener bound successfully\n");
@@ -17,13 +27,15 @@ pub fn start_http_server(addr: &str) {
     };
 
     let pool = ThreadPool::new(20);
+    let handler = Arc::new(handler);
 
     println!("[SERVER] Waiting for connections...\n");
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
+                let handler = Arc::clone(&handler);
                 pool.execute(|| {
-                    handle_client(stream);
+                    handle_client(stream, handler);
                 });
             }
             Err(e) => eprintln!("[ERROR] Accept error: {}", e),
@@ -31,7 +43,7 @@ pub fn start_http_server(addr: &str) {
     }
 }
 
-fn handle_client(mut stream: TcpStream) {
+fn handle_client<H: HttpHandler>(mut stream: TcpStream, handler: Arc<H>) {
     let mut buf = Vec::new();
     let mut tmp = [0u8; 4096];
 
@@ -44,7 +56,7 @@ fn handle_client(mut stream: TcpStream) {
                 match HttpRequest::try_from(&buf) {
                     Ok(req) => {
                         println!("[SERVER] Received request: {:?}", req.method);
-                        HttpResponse::respond(&mut stream, req);
+                        HttpResponse::respond(&mut stream, req, handler);
                         return;
                     }
 
@@ -60,6 +72,28 @@ fn handle_client(mut stream: TcpStream) {
             }
             Err(_) => return,
         }
+    }
+}
+
+pub struct HttpResponse;
+
+impl HttpResponse {
+    pub fn respond<H: HttpHandler>(stream: &mut TcpStream, req: HttpRequest, handler: Arc<H>) {
+        let result = handler.handle(req);
+
+        let response = format!(
+            "HTTP/1.0 {} OK\r\n\
+            Content-Type: {}\r\n\
+            Content-Length: {}\r\n\
+            \r\n\
+            {}",
+            result.status,
+            result.content_type,
+            result.body.len(),
+            result.body,
+        );
+
+        let _ = stream.write_all(response.as_bytes());
     }
 }
 
@@ -164,39 +198,5 @@ impl HttpRequest {
             body: body.to_string(),
             remote_addr: None,
         })
-    }
-}
-
-pub struct HttpResponse;
-
-impl HttpResponse {
-    pub fn respond(stream: &mut TcpStream, req: HttpRequest) {
-        let path = req.method.path();
-
-        let body = if path.starts_with("/addr") {
-            crate::peers::get_known_peers_json()
-        } else if path.starts_with("/getblocks") {
-            crate::ledger::handle_getblocks_request(path)
-        } else if path.starts_with("/getdata") {
-            crate::ledger::handle_getdata_request(path)
-        } else if path.starts_with("/inv") && matches!(req.method, HttpMethod::POST(_)) {
-            crate::ledger::handle_inv_request(&req.body)
-        } else if path.starts_with("/block") && matches!(req.method, HttpMethod::POST(_)) {
-            crate::ledger::handle_block_request(&req.body)
-        } else {
-            json!({"status": "ok", "message": "P2P node active"}).to_string()
-        };
-
-        let response = format!(
-            "HTTP/1.0 200 OK\r\n\
-            Content-Length: {}\r\n\
-            Content-Type: application/json\r\n\
-            \r\n\
-            {}",
-            body.len(),
-            body
-        );
-
-        let _ = stream.write_all(response.as_bytes());
     }
 }
