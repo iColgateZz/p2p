@@ -27,7 +27,7 @@ pub struct BlockDto {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct InvRequest {
+pub struct TransactionDto {
     pub hash: String,
     pub data: String,
 }

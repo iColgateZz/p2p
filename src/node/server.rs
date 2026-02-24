@@ -2,7 +2,7 @@ use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
 use crate::node::{
     client,
-    protocol::{BlockRequest, InvRequest, PeerDto},
+    protocol::{BlockRequest, TransactionDto, PeerDto},
 };
 use crate::peers;
 use serde_json::json;
@@ -18,7 +18,7 @@ impl HttpHandler for RequestHandler {
             HttpMethod::GET(path) if path.starts_with("/hashes") => get_hashes(&path),
             HttpMethod::GET(path) if path.starts_with("/block") => get_block(&path),
 
-            HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(&body),
+            HttpMethod::POST(path) if path.starts_with("/transaction") => post_transaction(&body),
             HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
 
             _ => HttpResult::err(501, "not implemented"),
@@ -88,8 +88,8 @@ fn get_block(path: &str) -> HttpResult {
     }
 }
 
-fn post_inv(body: &str) -> HttpResult {
-    let req: InvRequest = match serde_json::from_str(body) {
+fn post_transaction(body: &str) -> HttpResult {
+    let req: TransactionDto = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
             return HttpResult::err(400, &format!("JSON parse error: {}", e));

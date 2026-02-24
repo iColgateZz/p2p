@@ -1,6 +1,6 @@
 use crate::ledger;
 use crate::node::protocol::{
-    PeersDto, BlockRequest, HashesDto, BlockDto, InvRequest,
+    PeersDto, BlockRequest, HashesDto, BlockDto, TransactionDto,
 };
 use crate::peers::{self, Peer};
 use futures::future::join_all;
@@ -87,7 +87,7 @@ async fn fetch_block(peer: &Peer, hash: &str) {
 }
 
 pub fn broadcast_transaction(hash: &str, data: &str) {
-    let req = InvRequest {
+    let req = TransactionDto {
         hash: hash.to_string(),
         data: data.to_string(),
     };
@@ -97,7 +97,7 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
-            let url = peer.to_url("/inv");
+            let url = peer.to_url("/transaction");
             let req = req.clone();
 
             async move {
