@@ -1,11 +1,11 @@
 use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
+use crate::node::protocol::{HashesDto, PeersDto};
 use crate::node::{
     client,
-    protocol::{BlockDto, PeerDto, TransactionDto},
+    protocol::{BlockDto, PeerDto, TransactionDto, Message},
 };
 use crate::peers;
-use serde_json::json;
 
 pub struct RequestHandler;
 
@@ -33,28 +33,25 @@ fn get_peers() -> HttpResult {
 
     let peer_list: Vec<PeerDto> = peers
         .into_iter()
-        .map(|p| PeerDto { ip: p.ip, port: p.port, })
+        .map(|p| PeerDto {
+            ip: p.ip,
+            port: p.port,
+        })
         .collect();
 
-    HttpResult::ok_json(json!({
-        "peers": peer_list,
-    }))
+    HttpResult::ok(&PeersDto { peers: peer_list })
 }
 
 fn get_hashes(path: &str) -> HttpResult {
     if path == "/hashes" {
         let hashes = ledger::get_all_block_hashes();
-        return HttpResult::ok_json(json!({
-            "hashes": hashes,
-        }));
+        return HttpResult::ok(&HashesDto { hashes });
     }
 
     match path.split('/').nth(2) {
         Some(start_hash) => {
             let hashes = ledger::get_block_hashes_from(start_hash);
-            HttpResult::ok_json(json!({
-                "hashes": hashes,
-            }))
+            HttpResult::ok(&HashesDto { hashes })
         }
         None => HttpResult::err(400, "Invalid request"),
     }
@@ -67,19 +64,13 @@ fn get_block(path: &str) -> HttpResult {
     };
 
     match ledger::get_block(hash) {
-        Some(block) => HttpResult::ok_json(json!({
-            "hash": block.hash,
-            "content": block.content,
-            "timestamp": block.timestamp,
-        })),
+        Some(block) => HttpResult::ok(&BlockDto {
+            hash: block.hash,
+            content: block.content,
+            timestamp: block.timestamp,
+        }),
 
-        None => HttpResult::json(
-            404,
-            json!({
-                "error": "Block not found",
-                "hash": hash,
-            }),
-        ),
+        None => HttpResult::err(404,"Block not found"),
     }
 }
 
@@ -93,9 +84,9 @@ fn post_transaction(body: &str) -> HttpResult {
 
     if ledger::add_transaction(&transaction.hash, &transaction.data) {
         client::broadcast_transaction(&transaction.hash, &transaction.data);
-        HttpResult::json(201, json!({"message": "Transaction accepted"}))
+        HttpResult::created(&Message { message: "Transaction accepted" })
     } else {
-        HttpResult::ok_json(json!({"message": "Transaction already exists"}))
+        HttpResult::ok(&Message { message: "Transaction already exists" })
     }
 }
 
@@ -109,8 +100,8 @@ fn post_block(body: &str) -> HttpResult {
 
     if ledger::add_block(&block.hash, &block.content) {
         client::broadcast_block(&block.hash, &block.content);
-        HttpResult::json(201, json!({"message": "Block accepted"}))
+        HttpResult::created(&Message { message: "Block accepted" })
     } else {
-        HttpResult::ok_json(json!({"message": "Block already exists"}))
+        HttpResult::ok(&Message { message: "Block already exists" })
     }
 }

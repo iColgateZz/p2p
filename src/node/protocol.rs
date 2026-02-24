@@ -28,3 +28,8 @@ pub struct TransactionDto {
     pub hash: String,
     pub data: String,
 }
+
+#[derive(Serialize)]
+pub struct Message<'a> {
+    pub message: &'a str,
+}

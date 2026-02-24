@@ -1,4 +1,5 @@
 use crate::http::threadpool::ThreadPool;
+use serde::Serialize;
 use serde_json::json;
 use std::collections::HashMap;
 use std::io::{Read, Write};
@@ -16,20 +17,32 @@ pub struct HttpResult {
 }
 
 impl HttpResult {
-    pub fn json(status: u16, value: serde_json::Value) -> Self {
+    pub fn json<T: Serialize>(status: u16, value: &T) -> Self {
+        let body = serde_json::to_string(value)
+            .unwrap_or_else(|_| json!({"error": "serialization failed"}).to_string());
+
         Self {
             status,
-            body: value.to_string(),
+            body,
             content_type: "application/json",
         }
     }
 
-    pub fn ok_json(value: serde_json::Value) -> Self {
+    pub fn ok<T: Serialize>(value: &T) -> Self {
         Self::json(200, value)
     }
 
+    pub fn created<T: Serialize>(value: &T) -> Self {
+        Self::json(201, value)
+    }
+
     pub fn err(status: u16, msg: &str) -> Self {
-        Self::json(status, json!({ "error": msg }))
+        #[derive(Serialize)]
+        struct ErrorResponse<'a> {
+            error: &'a str,
+        }
+
+        Self::json(status, &ErrorResponse { error: msg })
     }
 }
 
