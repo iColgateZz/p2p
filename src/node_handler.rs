@@ -11,11 +11,11 @@ impl HttpHandler for NodeHandler {
 
         let result = match method {
             HttpMethod::GET(path) if path.starts_with("/addr") => get_addr(),
-            HttpMethod::GET(path) if path.starts_with("/getblocks") => get_getblocks(path),
-            HttpMethod::GET(path) if path.starts_with("/getdata") => get_getdata(path),
+            HttpMethod::GET(path) if path.starts_with("/getblocks") => get_getblocks(&path),
+            HttpMethod::GET(path) if path.starts_with("/getdata") => get_getdata(&path),
 
-            HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(body),
-            HttpMethod::POST(path) if path.starts_with("/block") => post_block(body),
+            HttpMethod::POST(path) if path.starts_with("/inv") => post_inv(&body),
+            HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
 
             _ => HttpResult {
                 status: 501,
@@ -29,187 +29,121 @@ impl HttpHandler for NodeHandler {
 }
 
 fn get_addr() -> HttpResult {
-    HttpResult {
-        status: 200,
-        body: get_known_peers_json(),
-        content_type: "application/json",
-    }
-}
-
-fn get_known_peers_json() -> String {
     let peers = peers::get_known_peers();
+
     let peer_list: Vec<Value> = peers
         .iter()
-        .map(|p| json!({"ip": p.ip, "port": p.port}))
+        .map(|p| json!({ "ip": p.ip, "port": p.port }))
         .collect();
-    json!({"peers": peer_list, "count": peer_list.len()}).to_string()
+
+    HttpResult::ok_json(json!({
+        "peers": peer_list,
+        "count": peer_list.len()
+    }))
 }
 
-fn get_getblocks(path: String) -> HttpResult {
-    let (status, body) = handle_getblocks_request(&path);
-    HttpResult {
-        status,
-        body,
-        content_type: "application/json",
-    }
-}
-
-fn handle_getblocks_request(path: &str) -> (u16, String) {
+fn get_getblocks(path: &str) -> HttpResult {
     if path == "/getblocks" {
         let hashes = ledger::get_all_block_hashes();
-        let body = json!({
+        return HttpResult::ok_json(json!({
             "blocks": hashes,
             "count": hashes.len()
-        })
-        .to_string();
+        }));
+    }
 
-        (200, body)
-    } else {
-        // Parse hash from path like /getblocks/abc123
-        let parts: Vec<&str> = path.split('/').collect();
-        if parts.len() >= 3 {
-            let start_hash = parts[2];
+    match path.split('/').nth(2) {
+        Some(start_hash) => {
             let hashes = ledger::get_blocks_from(start_hash);
-            let body = json!({
+            HttpResult::ok_json(json!({
                 "blocks": hashes,
                 "count": hashes.len()
-            })
-            .to_string();
-
-            (200, body)
-        } else {
-            let body = json!({
-                "error": "Invalid request",
-                "blocks": [],
-                "count": 0
-            })
-            .to_string();
-
-            (404, body)
+            }))
         }
+        None => HttpResult::err(400, "Invalid request"),
     }
 }
-
-fn get_getdata(path: String) -> HttpResult {
-    let (status, body) = handle_getdata_request(&path);
-    HttpResult {
-        status,
-        body,
-        content_type: "application/json",
-    }
-}
-
-fn handle_getdata_request(path: &str) -> (u16, String) {
-    // Parse hash from path like /getdata/abc123
-    let parts: Vec<&str> = path.split('/').collect();
-
-    if parts.len() < 3 {
-        return (404, json!({"error": "Invalid request"}).to_string());
-    }
-
-    let hash = parts[2];
+fn get_getdata(path: &str) -> HttpResult {
+    let hash = match path.split('/').nth(2) {
+        Some(h) => h,
+        None => return HttpResult::err(400, "Invalid request"),
+    };
 
     match ledger::get_block(hash) {
-        Some(block) => {
-            let body = json!({
-                "hash": block.hash,
-                "content": block.content,
-                "timestamp": block.timestamp,
-                "found": true
-            })
-            .to_string();
+        Some(block) => HttpResult::ok_json(json!({
+            "hash": block.hash,
+            "content": block.content,
+            "timestamp": block.timestamp,
+            "found": true
+        })),
 
-            (200, body)
-        }
-        None => {
-            let body = json!({
-                "error": "Block not found",
-                "hash": hash,
-                "found": false
-            })
-            .to_string();
-
-            (404, body)
-        }
+        None => HttpResult::json(404, json!({
+            "error": "Block not found",
+            "hash": hash,
+            "found": false
+        })),
     }
 }
 
-fn post_inv(body: String) -> HttpResult {
-    let (status, body) = handle_inv_request(&body);
-    HttpResult {
-        status,
-        body,
-        content_type: "application/json",
-    }
-}
+fn post_inv(body: &str) -> HttpResult {
+    let data: Value = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(e) => {
+            return HttpResult::json(400, json!({
+                "error": format!("JSON parse error: {}", e)
+            }));
+        }
+    };
 
-fn handle_inv_request(body: &str) -> (u16, String) {
-    match serde_json::from_str::<Value>(body) {
-        Ok(data) => {
-            if let (Some(hash), Some(tx_data)) = (
-                data.get("hash").and_then(|v| v.as_str()),
-                data.get("data").and_then(|v| v.as_str()),
-            ) {
-                if ledger::add_transaction(hash, tx_data) {
-                    // Broadcast to peers
-                    crate::peers::broadcast_transaction(hash, tx_data);
-                    (200, json!({"message": "Transaction accepted"}).to_string())
-                } else {
-                    (
-                        200,
-                        json!({"errcode": 1, "errmsg": "Transaction already exists"}).to_string(),
-                    )
-                }
+    let hash = data.get("hash").and_then(|v| v.as_str());
+    let tx_data = data.get("data").and_then(|v| v.as_str());
+
+    match (hash, tx_data) {
+        (Some(hash), Some(tx_data)) => {
+            if ledger::add_transaction(hash, tx_data) {
+                crate::peers::broadcast_transaction(hash, tx_data);
+                HttpResult::ok_json(json!({ "message": "Transaction accepted" }))
             } else {
-                (
-                    404,
-                    json!({"errcode": 2, "errmsg": "Invalid transaction format"}).to_string(),
-                )
+                HttpResult::ok_json(json!({
+                    "message": "Transaction already exists"
+                }))
             }
         }
-        Err(e) => (
-            500,
-            json!({"errcode": 3, "errmsg": format!("JSON parse error: {}", e)}).to_string(),
-        ),
+        _ => HttpResult::json(400, json!({
+            "error": "Invalid transaction format"
+        })),
     }
 }
 
-fn post_block(body: String) -> HttpResult {
-    let (status, body) = handle_block_request(&body);
-    HttpResult {
-        status,
-        body,
-        content_type: "application/json",
-    }
-}
+fn post_block(body: &str) -> HttpResult {
+    let data: Value = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(e) => {
+            return HttpResult::json(400, json!({
+                "error": format!("JSON parse error: {}", e)
+            }))
+        }
+    };
 
-fn handle_block_request(body: &str) -> (u16, String) {
-    match serde_json::from_str::<Value>(body) {
-        Ok(data) => {
-            if let (Some(hash), Some(content)) = (
-                data.get("hash").and_then(|v| v.as_str()),
-                data.get("content").and_then(|v| v.as_str()),
-            ) {
-                if ledger::add_block(hash, content) {
-                    // Broadcast to peers
-                    crate::peers::broadcast_block(hash, content);
-                    (200, json!({"message": "Block accepted"}).to_string())
-                } else {
-                    (
-                        200,
-                        json!({"errcode": 1, "errmsg": "Block already exists"}).to_string(),
-                    )
-                }
+    let hash = data.get("hash").and_then(|v| v.as_str());
+    let content = data.get("content").and_then(|v| v.as_str());
+
+    match (hash, content) {
+        (Some(hash), Some(content)) => {
+            if ledger::add_block(hash, content) {
+                crate::peers::broadcast_block(hash, content);
+
+                HttpResult::ok_json(json!({
+                    "message": "Block accepted"
+                }))
             } else {
-                (
-                    404,
-                    json!({"errcode": 2, "errmsg": "Invalid block format"}).to_string(),
-                )
+                HttpResult::ok_json(json!({
+                    "message": "Block already exists"
+                }))
             }
         }
-        Err(e) => (
-            500,
-            json!({"errcode": 3, "errmsg": format!("JSON parse error: {}", e)}).to_string(),
-        ),
+
+        _ => HttpResult::json(400, json!({
+            "error": "Invalid block format"
+        })),
     }
 }

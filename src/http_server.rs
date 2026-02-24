@@ -1,3 +1,4 @@
+use serde_json::json;
 use crate::threadpool::ThreadPool;
 use std::collections::HashMap;
 use std::io::{Read, Write};
@@ -12,6 +13,24 @@ pub struct HttpResult {
     pub status: u16,
     pub body: String,
     pub content_type: &'static str,
+}
+
+impl HttpResult {
+    pub fn json(status: u16, value: serde_json::Value) -> Self {
+        Self {
+            status,
+            body: value.to_string(),
+            content_type: "application/json",
+        }
+    }
+
+    pub fn ok_json(value: serde_json::Value) -> Self {
+        Self::json(200, value)
+    }
+
+    pub fn err(status: u16, msg: &str) -> Self {
+        Self::json(status, json!({ "error": msg }))
+    }
 }
 
 pub fn start<H: HttpHandler>(addr: &str, handler: H) {
