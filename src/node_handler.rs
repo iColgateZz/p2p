@@ -62,6 +62,7 @@ fn get_getblocks(path: &str) -> HttpResult {
         None => HttpResult::err(400, "Invalid request"),
     }
 }
+
 fn get_getdata(path: &str) -> HttpResult {
     let hash = match path.split('/').nth(2) {
         Some(h) => h,
