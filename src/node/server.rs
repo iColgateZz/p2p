@@ -45,8 +45,7 @@ fn get_hashes(path: &str) -> HttpResult {
     if path == "/hashes" {
         let hashes = ledger::get_all_block_hashes();
         return HttpResult::ok_json(json!({
-            "blocks": hashes,
-            "count": hashes.len()
+            "hashes": hashes,
         }));
     }
 
@@ -54,8 +53,7 @@ fn get_hashes(path: &str) -> HttpResult {
         Some(start_hash) => {
             let hashes = ledger::get_block_hashes_from(start_hash);
             HttpResult::ok_json(json!({
-                "blocks": hashes,
-                "count": hashes.len()
+                "hashes": hashes,
             }))
         }
         None => HttpResult::err(400, "Invalid request"),

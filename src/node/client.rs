@@ -56,7 +56,7 @@ pub async fn fetch_blocks_from_peers() {
             match client.get(&url).send().await {
                 Ok(resp) => {
                     if let Ok(data) = resp.json::<HashesDto>().await {
-                        for hash in data.blocks {
+                        for hash in data.hashes {
                             fetch_block(&peer, &hash).await;
                         }
                     }

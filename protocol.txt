@@ -5,11 +5,11 @@ GET /peers -> teadaolevad node'id
 
 
 GET /hashes -> all hashes
-200 { blocks: [ hash: String ], count: blocks.len() }
+200 { hashes: [ hash: String ] }
 
 
 GET /hashes/Z -> all hashes starting from hash Z
-200 { blocks: [ hash: String ], count: blocks.len() }
+200 { hashes: [ hash: String ] }
 400 { error: Invalid request }
 
 
