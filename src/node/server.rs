@@ -1,10 +1,7 @@
-use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
+use crate::http::server::{HttpHandler, HttpRequest, HttpResult};
 use crate::ledger;
-use crate::node::protocol::{HashesDto, PeersDto};
-use crate::node::{
-    client,
-    protocol::{BlockDto, Message, PeerDto, TransactionDto},
-};
+use crate::node::protocol::*;
+use crate::node::{client, route::Route};
 use crate::peers;
 
 pub struct RequestHandler;
@@ -13,18 +10,18 @@ impl HttpHandler for RequestHandler {
     fn handle(&self, req: HttpRequest) -> HttpResult {
         let HttpRequest { method, body, .. } = req;
 
-        let result = match method {
-            HttpMethod::GET(path) if path.starts_with("/peers") => get_peers(),
-            HttpMethod::GET(path) if path.starts_with("/hashes") => get_hashes(&path),
-            HttpMethod::GET(path) if path.starts_with("/block") => get_block(&path),
-
-            HttpMethod::POST(path) if path.starts_with("/transaction") => post_transaction(&body),
-            HttpMethod::POST(path) if path.starts_with("/block") => post_block(&body),
-
-            _ => HttpResult::not_impl(),
+        let Some(route) = Route::parse(&method) else {
+            return HttpResult::not_impl();
         };
 
-        result
+        match route {
+            Route::GetPeers => get_peers(),
+            Route::GetHashes => get_hashes(),
+            Route::GetHashesFrom(hash) => get_hashes_from(&hash),
+            Route::GetBlock(hash) => get_block(&hash),
+            Route::PostBlock => post_block(&body),
+            Route::PostTransaction => post_transaction(&body),
+        }
     }
 }
 
@@ -42,27 +39,17 @@ fn get_peers() -> HttpResult {
     HttpResult::ok(&PeersDto { peers: peer_list })
 }
 
-fn get_hashes(path: &str) -> HttpResult {
-    if path == "/hashes" {
-        let hashes = ledger::get_all_block_hashes();
-        return HttpResult::ok(&HashesDto { hashes });
-    }
-
-    match path.split('/').nth(2) {
-        Some(start_hash) => {
-            let hashes = ledger::get_block_hashes_from(start_hash);
-            HttpResult::ok(&HashesDto { hashes })
-        }
-        None => HttpResult::bad_req(),
-    }
+fn get_hashes() -> HttpResult {
+    let hashes = ledger::get_all_block_hashes();
+    HttpResult::ok(&HashesDto { hashes })
 }
 
-fn get_block(path: &str) -> HttpResult {
-    let hash = match path.split('/').nth(2) {
-        Some(h) => h,
-        None => return HttpResult::bad_req(),
-    };
+fn get_hashes_from(start_hash: &str) -> HttpResult {
+    let hashes = ledger::get_block_hashes_from(start_hash);
+    HttpResult::ok(&HashesDto { hashes })
+}
 
+fn get_block(hash: &str) -> HttpResult {
     match ledger::get_block(hash) {
         Some(block) => HttpResult::ok(&BlockDto {
             hash: block.hash,
