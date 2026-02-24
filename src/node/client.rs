@@ -80,7 +80,7 @@ async fn fetch_block(peer: &Peer, hash: &str) {
     if let Ok(resp) = client.get(&url).send().await {
         if let Ok(data) = resp.json::<GetDataResponse>().await {
             if data.found {
-                ledger::received_block_from_network(&data.hash, &data.content);
+                ledger::add_block(&data.hash, &data.content);
             }
         }
     }

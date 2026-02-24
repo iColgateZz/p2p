@@ -113,11 +113,3 @@ pub fn get_blocks_from(start_hash: &str) -> Vec<String> {
         hashes.clone()
     }
 }
-
-pub fn received_block_from_network(hash: &str, content: &str) -> bool {
-    add_block(hash, content)
-}
-
-pub fn received_transaction_from_network(hash: &str, data: &str) -> bool {
-    add_transaction(hash, data)
-}
