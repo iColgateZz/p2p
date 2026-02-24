@@ -1,4 +1,4 @@
-use crate::http_server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
+use crate::http::server::{HttpHandler, HttpMethod, HttpRequest, HttpResult};
 use crate::ledger;
 use crate::node::client;
 use crate::peers;

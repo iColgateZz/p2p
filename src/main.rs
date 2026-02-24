@@ -1,4 +1,4 @@
-use p2p::http_server;
+use p2p::http;
 use p2p::ledger;
 use p2p::node;
 use p2p::peers;
@@ -60,5 +60,5 @@ fn main() {
         node::client::discovery_loop().await;
     });
 
-    http_server::start(&addr, node::server::RequestHandler);
+    http::server::start(&addr, node::server::RequestHandler);
 }

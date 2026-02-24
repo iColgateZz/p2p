@@ -1,4 +1,4 @@
-use crate::threadpool::ThreadPool;
+use crate::http::threadpool::ThreadPool;
 use serde_json::json;
 use std::collections::HashMap;
 use std::io::{Read, Write};

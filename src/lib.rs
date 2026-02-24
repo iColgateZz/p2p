@@ -1,5 +1,4 @@
-pub mod http_server;
+pub mod http;
 pub mod ledger;
 pub mod node;
 pub mod peers;
-pub mod threadpool;
