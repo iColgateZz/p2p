@@ -10,12 +10,10 @@ GET /hashes -> all hashes
 
 GET /hashes/Z -> all hashes starting from hash Z
 200 { hashes: [ hash: String ] }
-400 { error: Bad request }
 
 
 GET /block/Z -> get data about block with hash Z
 200 { hash: Z, content: String, timestamp: Time }
-400 { error: Bad request }
 404 { error: Not found }
 
 
