@@ -59,12 +59,12 @@ fn load_peer_config() -> PeersDto {
     let config_file = "peers_config.json";
 
     let content = fs::read_to_string(config_file).unwrap_or_else(|e| {
-        eprintln!("Failed to read {}: {}", config_file, e);
+        eprintln!("[ERROR] Failed to read {}: {}", config_file, e);
         process::exit(1);
     });
 
     serde_json::from_str(&content).unwrap_or_else(|e| {
-        eprintln!("Could not parse {}: {}", config_file, e);
+        eprintln!("[ERROR] Could not parse {}: {}", config_file, e);
         process::exit(1);
     })
 }
