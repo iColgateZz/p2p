@@ -13,11 +13,11 @@ pub struct Block {
 
 Block and transaction communication
 
-Scenario: Node creates a new transaction
-    1. Set timestamp
-    2. Generate hash
-    3. Add to pending transactions
-    4. Broadcast transaction to peers
+    Scenario: Node creates a new transaction
+        1. Set timestamp
+        2. Generate hash
+        3. Add to pending transactions
+        4. Broadcast transaction to peers
 
 
     Scenario: Node receives a transaction T
