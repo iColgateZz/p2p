@@ -28,10 +28,10 @@ Block and transaction communication
             4. Broadcast transaction to peers
 
 
-Scenario: Every X seconds, a node
-    1. Generate block with pending transactions
-    2. Add to blockchain
-    3. Broadcast block to peers
+    Scenario: Every X seconds, a node
+        1. Generate block with pending transactions
+        2. Add to blockchain
+        3. Broadcast block to peers
 
 
     Scenario: Node receives a block B
