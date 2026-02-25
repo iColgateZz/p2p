@@ -28,7 +28,7 @@ impl HttpHandler for RequestHandler {
 }
 
 fn get_peers() -> HttpResult {
-    let peers = peers::get_known_peers();
+    let peers = peers::select_random_peers();
 
     let peer_list: Vec<PeerDto> = peers
         .into_iter()

@@ -19,7 +19,7 @@ fn http_client() -> &'static Client {
 }
 
 pub async fn discover_peers() {
-    let peers = peers::get_known_peers();
+    let peers = peers::select_random_peers();
 
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
@@ -45,7 +45,7 @@ pub async fn discover_peers() {
 }
 
 pub async fn fetch_blocks_from_peers() {
-    let peers = peers::get_known_peers();
+    let peers = peers::select_random_peers();
 
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
@@ -91,7 +91,7 @@ async fn fetch_block(peer: &Peer, hash: &str) {
 
 pub fn broadcast_transaction(req: TransactionDto) {
     tokio::spawn(async move {
-        let peers = peers::get_known_peers();
+        let peers = peers::select_random_peers();
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
@@ -109,7 +109,7 @@ pub fn broadcast_transaction(req: TransactionDto) {
 
 pub fn broadcast_block(req: BlockDto) {
     tokio::spawn(async move {
-        let peers = peers::get_known_peers();
+        let peers = peers::select_random_peers();
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();

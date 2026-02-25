@@ -62,7 +62,7 @@ pub fn get_known_peers() -> Vec<Peer> {
     known.iter().cloned().collect()
 }
 
-fn select_random_peers() -> Vec<Peer> {
+pub fn select_random_peers() -> Vec<Peer> {
     let peers = KNOWN_PEERS.lock().unwrap();
     let mut rng = thread_rng();
 
