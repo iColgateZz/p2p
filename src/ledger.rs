@@ -77,10 +77,8 @@ fn now() -> u64 {
 
 pub fn add_block(block: &Block) -> bool {
     let mut blocks = BLOCKS.lock().unwrap();
-    for b in blocks.iter() {
-        if b.hash == block.hash {
-            return false;
-        }
+    if blocks.iter().any(|b| b.hash == block.hash) {
+        return false;
     }
 
     // we always have at least the genesis block
@@ -90,6 +88,14 @@ pub fn add_block(block: &Block) -> bool {
     }
 
     blocks.push(block.clone());
+    drop(blocks); // release lock early
+
+    // Remove confirmed transactions from pending
+    let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
+    pending.retain(|pending_tx| {
+        !block.transactions.iter().any(|tx| tx.hash == pending_tx.hash)
+    });
+
     println!("[LEDGER] Added block: {}", block.hash);
     true
 }
