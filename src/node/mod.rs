@@ -46,6 +46,10 @@ fn start_async_background_jobs() -> Runtime {
         node::client::block_sync_loop().await;
     });
 
+    rt.spawn(async {
+        node::client::block_creation_loop().await;
+    });
+
     rt
 }
 

@@ -138,3 +138,21 @@ pub async fn block_sync_loop() {
         sleep(Duration::from_secs(15)).await;
     }
 }
+
+pub async fn block_creation_loop() {
+    loop {
+        sleep(Duration::from_secs(60)).await;
+
+        let pending = ledger::take_pending_transactions();
+        if pending.is_empty() {
+            continue;
+        }
+
+        let prev_hash = ledger::last_block_hash();
+        let timestamp = ledger::now();
+        let block = Block::new(prev_hash, pending, timestamp);
+
+        ledger::add_block(&block);
+        broadcast_block(BlockDto::from(&block));
+    }
+}

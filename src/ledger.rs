@@ -74,7 +74,7 @@ pub fn compute_hash(data: &str) -> String {
     hex::encode(result)
 }
 
-fn now() -> u64 {
+pub fn now() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
@@ -120,6 +120,18 @@ pub fn add_transaction(transaction: &Transaction) -> bool {
     transactions.push(transaction.clone());
     println!("[LEDGER] Added transaction: {}", transaction.hash);
     true
+}
+
+pub fn take_pending_transactions() -> Vec<Transaction> {
+    let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
+    let txs = pending.clone();
+    pending.clear();
+    txs
+}
+
+pub fn last_block_hash() -> String {
+    let blocks = BLOCKS.lock().unwrap();
+    blocks.last().unwrap().hash.clone()
 }
 
 pub fn get_block(hash: &str) -> Option<Block> {
