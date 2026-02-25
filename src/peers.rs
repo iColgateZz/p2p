@@ -1,6 +1,8 @@
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::sync::{Mutex, OnceLock};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Peer {
@@ -58,4 +60,13 @@ pub fn add_peer(ip: String, port: u16) -> bool {
 pub fn get_known_peers() -> Vec<Peer> {
     let known = KNOWN_PEERS.lock().unwrap();
     known.iter().cloned().collect()
+}
+
+fn select_random_peers() -> Vec<Peer> {
+    let peers = KNOWN_PEERS.lock().unwrap();
+    let mut rng = thread_rng();
+
+    let mut peers: Vec<Peer> = peers.iter().map(|p| p.clone()).collect();
+    peers.shuffle(&mut rng);
+    peers.into_iter().take(100).collect()
 }
