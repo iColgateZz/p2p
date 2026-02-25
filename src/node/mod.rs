@@ -27,7 +27,7 @@ pub fn start(ip: &str, port: u16) {
     println!("[NODE] Peers loaded from config");
 
     ledger::init_genesis_block();
-    println!();
+    println!("[LEDGER] Genesis block created");
 
     let _rt = start_async_background_jobs();
     println!("[NODE] Started background jobs");

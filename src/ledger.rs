@@ -63,8 +63,8 @@ pub fn init_genesis_block() {
     let tx = Transaction::new("Alice=100".to_string(), timestamp);
     let block = Block::new(String::new(), vec![tx], timestamp);
 
-    add_block(&block);
-    println!("[LEDGER] Genesis block created: {}", block.hash);
+    let mut blocks = BLOCKS.lock().unwrap();
+    blocks.push(block);
 }
 
 pub fn compute_hash(data: &str) -> String {
