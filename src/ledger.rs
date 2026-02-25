@@ -1,7 +1,5 @@
 use lazy_static::lazy_static;
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
-use std::collections::HashSet;
 use std::sync::Mutex;
 
 #[derive(Debug, Clone)]
@@ -52,11 +50,8 @@ impl Transaction {
 }
 
 lazy_static! {
-    static ref BLOCKS: Mutex<HashMap<String, Block>> = Mutex::new(HashMap::new());
-    static ref TRANSACTIONS: Mutex<HashMap<String, Transaction>> = Mutex::new(HashMap::new());
-    static ref BLOCK_HASHES: Mutex<Vec<String>> = Mutex::new(Vec::new());
-    static ref SEEN_BLOCKS: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
-    static ref SEEN_TRANSACTIONS: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
+    static ref BLOCKS: Mutex<Vec<Block>> = Mutex::new(Vec::new());
+    static ref TRANSACTIONS: Mutex<Vec<Transaction>> = Mutex::new(Vec::new());
 }
 
 pub fn init_genesis_block() {
@@ -89,56 +84,58 @@ fn now() -> u64 {
 }
 
 pub fn add_block(block: &Block) -> bool {
-    let mut seen = SEEN_BLOCKS.lock().unwrap();
-
-    if seen.contains(&block.hash) {
-        return false;
+    let mut blocks = BLOCKS.lock().unwrap();
+    for b in blocks.iter() {
+        if b.hash == block.hash {
+            return false;
+        }
     }
 
-    seen.insert(block.hash.to_string());
-
-    let mut blocks = BLOCKS.lock().unwrap();
-    let mut hashes = BLOCK_HASHES.lock().unwrap();
-
-    blocks.insert(block.hash.to_string(), block.clone());
-    hashes.push(block.hash.to_string());
-
+    blocks.push(block.clone());
     println!("[LEDGER] Added block: {}", block.hash);
     true
 }
 
-pub fn add_transaction(tx: &Transaction) -> bool {
-    let mut seen = SEEN_TRANSACTIONS.lock().unwrap();
-
-    if seen.contains(&tx.hash) {
-        return false;
+pub fn add_transaction(transaction: &Transaction) -> bool {
+    let mut transactions = TRANSACTIONS.lock().unwrap();
+    for tx in transactions.iter() {
+        if tx.hash == transaction.hash {
+            return false;
+        }
     }
 
-    seen.insert(tx.hash.to_string());
-
-    let mut transactions = TRANSACTIONS.lock().unwrap();
-    transactions.insert(tx.hash.to_string(), tx.clone());
-
-    println!("[LEDGER] Added transaction: {}", tx.hash);
+    transactions.push(transaction.clone());
+    println!("[LEDGER] Added transaction: {}", transaction.hash);
     true
 }
 
 pub fn get_block(hash: &str) -> Option<Block> {
     let blocks = BLOCKS.lock().unwrap();
-    blocks.get(hash).cloned()
+    for b in blocks.iter() {
+        if b.hash == hash {
+            return Some(b.clone());
+        }
+    }
+
+    None
 }
 
 pub fn get_all_block_hashes() -> Vec<String> {
-    let hashes = BLOCK_HASHES.lock().unwrap();
-    hashes.clone()
+    let mut v = Vec::new();
+
+    for b in BLOCKS.lock().unwrap().iter() {
+        v.push(b.hash.clone());
+    }
+
+    v
 }
 
 pub fn get_block_hashes_from(start_hash: &str) -> Vec<String> {
-    let hashes = BLOCK_HASHES.lock().unwrap();
+    let blocks = BLOCKS.lock().unwrap();
 
-    if let Some(pos) = hashes.iter().position(|h| h == start_hash) {
-        hashes[pos..].to_vec()
+    if let Some(pos) = blocks.iter().position(|b| b.hash == start_hash) {
+        blocks[pos..].iter().map(|b| {b.hash.clone()}).collect()
     } else {
-        hashes.clone()
+        Vec::new()
     }
 }
