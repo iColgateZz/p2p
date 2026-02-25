@@ -6,6 +6,7 @@ pub mod server;
 use crate::http;
 use crate::node;
 use crate::peers;
+use crate::ledger;
 use protocol::PeersDto;
 use std::{fs, process};
 use tokio::runtime::Runtime;
@@ -25,15 +26,23 @@ pub fn start(ip: &str, port: u16) {
     load_peers();
     println!("[NODE] Peers loaded from config");
 
-    // ledger::init_genesis_block();
+    ledger::init_genesis_block();
     println!();
 
+    let _rt= start_async_background_jobs();
+    println!("[NODE] Started background jobs");
+
+    http::server::start(&addr, node::server::RequestHandler);
+}
+
+fn start_async_background_jobs() -> Runtime {
     let rt = Runtime::new().expect("[ERROR] Async runtime could not be started");
+
     rt.spawn(async {
         node::client::discovery_loop().await;
     });
 
-    http::server::start(&addr, node::server::RequestHandler);
+    rt
 }
 
 fn load_peers() {

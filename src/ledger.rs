@@ -27,7 +27,7 @@ lazy_static! {
 }
 
 pub fn init_genesis_block() {
-    let genesis_content = "Genesis Block";
+    let genesis_content = "Alice=100";
     let genesis_hash = compute_hash(genesis_content);
     add_block(&genesis_hash, genesis_content);
     println!("[LEDGER] Genesis block created: {}", genesis_hash);

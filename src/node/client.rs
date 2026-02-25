@@ -79,6 +79,7 @@ async fn fetch_block(peer: &Peer, hash: &str) {
     let Ok(resp) = client.get(&url).send().await else {
         return;
     };
+
     if !resp.status().is_success() {
         return;
     }
