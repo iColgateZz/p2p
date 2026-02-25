@@ -91,7 +91,7 @@ fn post_block(body: &str) -> HttpResult {
         })
     } else {
         HttpResult::ok(&Message {
-            message: "Block already exists",
+            message: "Block already exists or its hash does not match the hash of the last block in the chain",
         })
     }
 }

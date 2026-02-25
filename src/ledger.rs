@@ -12,10 +12,7 @@ pub struct Block {
 
 impl Block {
     pub fn new(prev_hash: String, transactions: Vec<Transaction>, timestamp: u64) -> Self {
-        let tx_hashes: String = transactions
-            .iter()
-            .map(|t| t.hash.clone())
-            .collect();
+        let tx_hashes: String = transactions.iter().map(|t| t.hash.clone()).collect();
 
         let input = format!("{}{}{}", prev_hash, tx_hashes, timestamp);
         let hash = compute_hash(&input);
@@ -58,12 +55,7 @@ pub fn init_genesis_block() {
     let timestamp = 0;
 
     let tx = Transaction::new("Alice=100".to_string(), timestamp);
-
-    let block = Block::new(
-        String::new(),
-        vec![tx],
-        timestamp,
-    );
+    let block = Block::new(String::new(), vec![tx], timestamp);
 
     add_block(&block);
     println!("[LEDGER] Genesis block created: {}", block.hash);
@@ -89,6 +81,12 @@ pub fn add_block(block: &Block) -> bool {
         if b.hash == block.hash {
             return false;
         }
+    }
+
+    // we always have at least the genesis block
+    let last_block = blocks.last().unwrap();
+    if last_block.hash != block.hash {
+        return false;
     }
 
     blocks.push(block.clone());
@@ -134,7 +132,7 @@ pub fn get_block_hashes_from(start_hash: &str) -> Vec<String> {
     let blocks = BLOCKS.lock().unwrap();
 
     if let Some(pos) = blocks.iter().position(|b| b.hash == start_hash) {
-        blocks[pos..].iter().map(|b| {b.hash.clone()}).collect()
+        blocks[pos..].iter().map(|b| b.hash.clone()).collect()
     } else {
         Vec::new()
     }
