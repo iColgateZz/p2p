@@ -12,19 +12,19 @@ GET /hashes/Z -> all hashes starting from hash Z
 200 { hashes: [ hash: String ] }
 
 
-GET /block/Z -> get data about block with hash Z
+GET /blocks/Z -> get data about block with hash Z
 200 { hash: Z, content: String, timestamp: Time }
 404 { error: Not found }
 
 
-POST /transaction -> add a new transaction to the node
+POST /transactions -> add a new transaction to the node
 BODY: { hash: Hash of transaction, data: Data of the transaction }
 201 { message: Transaction accepted }
 200 { message: Transaction already exists }
 400 { error: Bad request }
 
 
-POST /block -> add a new block to the node
+POST /blocks -> add a new block to the node
 BODY: { hash: Hash of block, data: Data of the block }
 201 { message: Block accepted }
 200 { message: Block already exists }

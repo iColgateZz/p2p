@@ -16,9 +16,9 @@ impl Route {
             Route::GetPeers => "/peers".into(),
             Route::GetHashes => "/hashes".into(),
             Route::GetHashesFrom(hash) => format!("/hashes/{}", hash),
-            Route::GetBlock(hash) => format!("/block/{}", hash),
-            Route::PostBlock => "/block".into(),
-            Route::PostTransaction => "/transaction".into(),
+            Route::GetBlock(hash) => format!("/blocks/{}", hash),
+            Route::PostBlock => "/blocks".into(),
+            Route::PostTransaction => "/transactions".into(),
         }
     }
 
@@ -33,14 +33,14 @@ impl Route {
                 .nth(2)
                 .map(|h| Route::GetHashesFrom(h.to_string())),
 
-            HttpMethod::GET(path) if path.starts_with("/block/") => path
+            HttpMethod::GET(path) if path.starts_with("/blocks/") => path
                 .split('/')
                 .nth(2)
                 .map(|h| Route::GetBlock(h.to_string())),
 
-            HttpMethod::POST(path) if path == "/block" => Some(Route::PostBlock),
+            HttpMethod::POST(path) if path == "/blocks" => Some(Route::PostBlock),
 
-            HttpMethod::POST(path) if path == "/transaction" => Some(Route::PostTransaction),
+            HttpMethod::POST(path) if path == "/transactions" => Some(Route::PostTransaction),
 
             _ => None,
         }
