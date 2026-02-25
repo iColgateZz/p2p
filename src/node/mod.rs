@@ -37,7 +37,7 @@ pub fn start(ip: &str, port: u16) {
 }
 
 fn load_peers() {
-    let bootstrap_peers = load_config();
+    let bootstrap_peers = load_peer_config();
     let peers = bootstrap_peers
         .peers
         .iter()
@@ -46,7 +46,7 @@ fn load_peers() {
     peers::add_bootstrap_peers(peers);
 }
 
-fn load_config() -> PeersDto {
+fn load_peer_config() -> PeersDto {
     let config_file = "peers_config.json";
 
     let content = fs::read_to_string(config_file).unwrap_or_else(|e| {
