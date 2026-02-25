@@ -85,7 +85,7 @@ pub fn add_block(block: &Block) -> bool {
 
     // we always have at least the genesis block
     let last_block = blocks.last().unwrap();
-    if last_block.hash != block.hash {
+    if last_block.hash != block.prev_hash {
         return false;
     }
 
