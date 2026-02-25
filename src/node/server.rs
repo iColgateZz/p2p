@@ -1,5 +1,5 @@
 use crate::http::server::{HttpHandler, HttpRequest, HttpResult};
-use crate::ledger;
+use crate::ledger::{self, Block, Transaction};
 use crate::node::protocol::*;
 use crate::node::{client, route::Route};
 use crate::peers;
@@ -51,26 +51,21 @@ fn get_hashes_from(start_hash: &str) -> HttpResult {
 
 fn get_block(hash: &str) -> HttpResult {
     match ledger::get_block(hash) {
-        Some(block) => HttpResult::ok(&BlockDto {
-            hash: block.hash,
-            content: block.content,
-            timestamp: block.timestamp,
-        }),
-
+        Some(block) => HttpResult::ok(&BlockDto::from(&block)),
         None => HttpResult::not_found(),
     }
 }
 
 fn post_transaction(body: &str) -> HttpResult {
-    let transaction: TransactionDto = match serde_json::from_str(body) {
+    let dto: TransactionDto = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(_) => {
             return HttpResult::bad_req();
         }
     };
 
-    if ledger::add_transaction(&transaction.hash, &transaction.data) {
-        client::broadcast_transaction(&transaction.hash, &transaction.data);
+    if ledger::add_transaction(&Transaction::from(&dto)) {
+        client::broadcast_transaction(dto);
         HttpResult::created(&Message {
             message: "Transaction accepted",
         })
@@ -82,15 +77,15 @@ fn post_transaction(body: &str) -> HttpResult {
 }
 
 fn post_block(body: &str) -> HttpResult {
-    let block: BlockDto = match serde_json::from_str(body) {
+    let dto: BlockDto = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(_) => {
             return HttpResult::bad_req();
         }
     };
 
-    if ledger::add_block(&block.hash, &block.content) {
-        client::broadcast_block(&block.hash, &block.content);
+    if ledger::add_block(&Block::from(&dto)) {
+        client::broadcast_block(dto);
         HttpResult::created(&Message {
             message: "Block accepted",
         })

@@ -1,4 +1,4 @@
-use crate::ledger;
+use crate::ledger::{self, Block};
 use crate::node::protocol::{BlockDto, HashesDto, PeersDto, TransactionDto};
 use crate::node::route::Route;
 use crate::peers::{self, Peer};
@@ -85,16 +85,11 @@ async fn fetch_block(peer: &Peer, hash: &str) {
     }
 
     if let Ok(block) = resp.json::<BlockDto>().await {
-        ledger::add_block(&block.hash, &block.content);
+        ledger::add_block(&Block::from(&block));
     }
 }
 
-pub fn broadcast_transaction(hash: &str, data: &str) {
-    let req = TransactionDto {
-        hash: hash.to_string(),
-        data: data.to_string(),
-    };
-
+pub fn broadcast_transaction(req: TransactionDto) {
     tokio::spawn(async move {
         let peers = peers::get_known_peers();
 
@@ -112,13 +107,7 @@ pub fn broadcast_transaction(hash: &str, data: &str) {
     });
 }
 
-pub fn broadcast_block(hash: &str, content: &str) {
-    let req = BlockDto {
-        hash: hash.to_string(),
-        content: content.to_string(),
-        timestamp: 0,
-    };
-
+pub fn broadcast_block(req: BlockDto) {
     tokio::spawn(async move {
         let peers = peers::get_known_peers();
 

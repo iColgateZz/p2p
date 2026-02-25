@@ -7,8 +7,28 @@ use std::sync::Mutex;
 #[derive(Debug, Clone)]
 pub struct Block {
     pub hash: String,
-    pub content: String,
+    pub prev_hash: String,
+    pub transactions: Vec<Transaction>,
     pub timestamp: u64,
+}
+
+impl Block {
+    pub fn new(prev_hash: String, transactions: Vec<Transaction>, timestamp: u64) -> Self {
+        let tx_hashes: String = transactions
+            .iter()
+            .map(|t| t.hash.clone())
+            .collect();
+
+        let input = format!("{}{}{}", prev_hash, tx_hashes, timestamp);
+        let hash = compute_hash(&input);
+
+        Self {
+            hash,
+            prev_hash,
+            transactions,
+            timestamp,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -16,6 +36,19 @@ pub struct Transaction {
     pub hash: String,
     pub data: String,
     pub timestamp: u64,
+}
+
+impl Transaction {
+    pub fn new(data: String, timestamp: u64) -> Self {
+        let input = format!("{}{}", data, timestamp);
+        let hash = compute_hash(&input);
+
+        Self {
+            hash,
+            data,
+            timestamp,
+        }
+    }
 }
 
 lazy_static! {
@@ -27,10 +60,18 @@ lazy_static! {
 }
 
 pub fn init_genesis_block() {
-    let genesis_content = "Alice=100";
-    let genesis_hash = compute_hash(genesis_content);
-    add_block(&genesis_hash, genesis_content);
-    println!("[LEDGER] Genesis block created: {}", genesis_hash);
+    let timestamp = 0;
+
+    let tx = Transaction::new("Alice=100".to_string(), timestamp);
+
+    let block = Block::new(
+        String::new(),
+        vec![tx],
+        timestamp,
+    );
+
+    add_block(&block);
+    println!("[LEDGER] Genesis block created: {}", block.hash);
 }
 
 pub fn compute_hash(data: &str) -> String {
@@ -40,56 +81,45 @@ pub fn compute_hash(data: &str) -> String {
     hex::encode(result)
 }
 
-pub fn add_block(hash: &str, content: &str) -> bool {
+fn now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+pub fn add_block(block: &Block) -> bool {
     let mut seen = SEEN_BLOCKS.lock().unwrap();
 
-    if seen.contains(hash) {
+    if seen.contains(&block.hash) {
         return false;
     }
 
-    seen.insert(hash.to_string());
-
-    let block = Block {
-        hash: hash.to_string(),
-        content: content.to_string(),
-        timestamp: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs(),
-    };
+    seen.insert(block.hash.to_string());
 
     let mut blocks = BLOCKS.lock().unwrap();
     let mut hashes = BLOCK_HASHES.lock().unwrap();
 
-    blocks.insert(hash.to_string(), block);
-    hashes.push(hash.to_string());
+    blocks.insert(block.hash.to_string(), block.clone());
+    hashes.push(block.hash.to_string());
 
-    println!("[LEDGER] Added block: {}", hash);
+    println!("[LEDGER] Added block: {}", block.hash);
     true
 }
 
-pub fn add_transaction(hash: &str, data: &str) -> bool {
+pub fn add_transaction(tx: &Transaction) -> bool {
     let mut seen = SEEN_TRANSACTIONS.lock().unwrap();
 
-    if seen.contains(hash) {
+    if seen.contains(&tx.hash) {
         return false;
     }
 
-    seen.insert(hash.to_string());
-
-    let transaction = Transaction {
-        hash: hash.to_string(),
-        data: data.to_string(),
-        timestamp: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs(),
-    };
+    seen.insert(tx.hash.to_string());
 
     let mut transactions = TRANSACTIONS.lock().unwrap();
-    transactions.insert(hash.to_string(), transaction);
+    transactions.insert(tx.hash.to_string(), tx.clone());
 
-    println!("[LEDGER] Added transaction: {}", hash);
+    println!("[LEDGER] Added transaction: {}", tx.hash);
     true
 }
 
