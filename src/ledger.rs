@@ -51,7 +51,7 @@ impl Transaction {
 
 lazy_static! {
     static ref BLOCKS: Mutex<Vec<Block>> = Mutex::new(Vec::new());
-    static ref TRANSACTIONS: Mutex<Vec<Transaction>> = Mutex::new(Vec::new());
+    static ref PENDING_TRANSACTIONS: Mutex<Vec<Transaction>> = Mutex::new(Vec::new());
 }
 
 pub fn init_genesis_block() {
@@ -97,7 +97,7 @@ pub fn add_block(block: &Block) -> bool {
 }
 
 pub fn add_transaction(transaction: &Transaction) -> bool {
-    let mut transactions = TRANSACTIONS.lock().unwrap();
+    let mut transactions = PENDING_TRANSACTIONS.lock().unwrap();
     for tx in transactions.iter() {
         if tx.hash == transaction.hash {
             return false;
