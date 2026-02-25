@@ -41,7 +41,7 @@ Scenario: Every X seconds, a node
             3. If block's hash != last block's hash, disregard the received block
             3. Add block to blockchain
             4. Remove included transaction from pending
-            5. Broadcast to peers
+            5. Broadcast block to peers
 
 
 Scenario: Node joins the network
