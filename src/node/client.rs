@@ -125,10 +125,15 @@ pub fn broadcast_block(req: BlockDto) {
     });
 }
 
-pub async fn discovery_loop() {
+pub async fn peer_discovery_loop() {
     loop {
-        println!("[DISCOVERY] Running peer discovery...");
         discover_peers().await;
+        sleep(Duration::from_secs(30)).await;
+    }
+}
+
+pub async fn block_sync_loop() {
+    loop {
         fetch_blocks_from_peers().await;
         sleep(Duration::from_secs(15)).await;
     }

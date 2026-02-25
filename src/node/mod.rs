@@ -39,7 +39,11 @@ fn start_async_background_jobs() -> Runtime {
     let rt = Runtime::new().expect("[ERROR] Async runtime could not be started");
 
     rt.spawn(async {
-        node::client::discovery_loop().await;
+        node::client::peer_discovery_loop().await;
+    });
+
+    rt.spawn(async {
+        node::client::block_sync_loop().await;
     });
 
     rt
