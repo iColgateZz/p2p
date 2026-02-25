@@ -107,7 +107,9 @@ fn post_users(body: &str) -> HttpResult {
     };
 
     let data = format!("{}={}", dto.name, dto.balance);
-    ledger::add_transaction(&Transaction::from_data(data));
+    let tx = Transaction::from_data(data);
+    ledger::add_transaction(&tx);
+    client::broadcast_transaction(TransactionDto::from(&tx));
 
     HttpResult::created(&Message {
         message: "User added",
@@ -123,7 +125,9 @@ fn post_transfers(body: &str) -> HttpResult {
     };
 
     let data = format!("{}->{}:{}", dto.from, dto.to, dto.sum);
-    ledger::add_transaction(&Transaction::from_data(data));
+    let tx = Transaction::from_data(data);
+    ledger::add_transaction(&tx);
+    client::broadcast_transaction(TransactionDto::from(&tx));
 
     HttpResult::created(&Message {
         message: "Transfer accepted",
