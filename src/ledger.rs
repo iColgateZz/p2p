@@ -44,6 +44,12 @@ impl Transaction {
             timestamp,
         }
     }
+
+    pub fn from_data(data: String) -> Self {
+        let timestamp = now();
+        let input = format!("{}{}", data, timestamp);
+        Self::new(input, timestamp)
+    }
 }
 
 lazy_static! {
@@ -93,7 +99,10 @@ pub fn add_block(block: &Block) -> bool {
     // Remove confirmed transactions from pending
     let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
     pending.retain(|pending_tx| {
-        !block.transactions.iter().any(|tx| tx.hash == pending_tx.hash)
+        !block
+            .transactions
+            .iter()
+            .any(|tx| tx.hash == pending_tx.hash)
     });
 
     println!("[LEDGER] Added block: {}", block.hash);

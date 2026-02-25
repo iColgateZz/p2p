@@ -22,7 +22,7 @@ impl Route {
             Route::PostBlock => "/blocks".into(),
             Route::PostTransaction => "/transactions".into(),
             Route::PostUsers => "/users".into(),
-            Route::PostTransfers => "/transfers".into()
+            Route::PostTransfers => "/transfers".into(),
         }
     }
 

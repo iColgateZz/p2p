@@ -79,3 +79,16 @@ impl From<&TransactionDto> for Transaction {
 pub struct Message<'a> {
     pub message: &'a str,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct UserDto {
+    pub name: String,
+    pub balance: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TransferDto {
+    pub from: String,
+    pub to: String,
+    pub sum: i64,
+}

@@ -21,6 +21,8 @@ impl HttpHandler for RequestHandler {
             Route::GetBlock(hash) => get_block(&hash),
             Route::PostBlock => post_block(&body),
             Route::PostTransaction => post_transaction(&body),
+            Route::PostUsers => post_users(&body),
+            Route::PostTransfers => post_transfers(&body),
         }
     }
 }
@@ -94,4 +96,36 @@ fn post_block(body: &str) -> HttpResult {
             message: "Block already exists or its hash does not match the hash of the last block in the chain",
         })
     }
+}
+
+fn post_users(body: &str) -> HttpResult {
+    let dto: UserDto = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(_) => {
+            return HttpResult::bad_req();
+        }
+    };
+
+    let data = format!("{}={}", dto.name, dto.balance);
+    ledger::add_transaction(&Transaction::from_data(data));
+
+    HttpResult::created(&Message {
+        message: "User added",
+    })
+}
+
+fn post_transfers(body: &str) -> HttpResult {
+    let dto: TransferDto = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(_) => {
+            return HttpResult::bad_req();
+        }
+    };
+
+    let data = format!("{}->{}:{}", dto.from, dto.to, dto.sum);
+    ledger::add_transaction(&Transaction::from_data(data));
+
+    HttpResult::created(&Message {
+        message: "Transfer accepted",
+    })
 }
