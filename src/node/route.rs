@@ -4,7 +4,7 @@ use crate::http::server::HttpMethod;
 pub enum Route {
     GetPeers,
     GetHashes,
-    GetHashesFrom(String),
+    GetHashesAfter(String),
     GetBlock(String),
     PostBlock,
     PostTransaction,
@@ -17,7 +17,7 @@ impl Route {
         match self {
             Route::GetPeers => "/peers".into(),
             Route::GetHashes => "/hashes".into(),
-            Route::GetHashesFrom(hash) => format!("/hashes/{}", hash),
+            Route::GetHashesAfter(hash) => format!("/hashes/{}", hash),
             Route::GetBlock(hash) => format!("/blocks/{}", hash),
             Route::PostBlock => "/blocks".into(),
             Route::PostTransaction => "/transactions".into(),
@@ -35,7 +35,7 @@ impl Route {
             HttpMethod::GET(path) if path.starts_with("/hashes/") => path
                 .split('/')
                 .nth(2)
-                .map(|h| Route::GetHashesFrom(h.to_string())),
+                .map(|h| Route::GetHashesAfter(h.to_string())),
 
             HttpMethod::GET(path) if path.starts_with("/blocks/") => path
                 .split('/')

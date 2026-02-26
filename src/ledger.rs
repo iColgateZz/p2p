@@ -155,11 +155,15 @@ pub fn get_all_block_hashes() -> Vec<String> {
     v
 }
 
-pub fn get_block_hashes_from(start_hash: &str) -> Vec<String> {
+pub fn get_block_hashes_after(start_hash: &str) -> Vec<String> {
     let blocks = BLOCKS.lock().unwrap();
 
     if let Some(pos) = blocks.iter().position(|b| b.hash == start_hash) {
-        blocks[pos..].iter().map(|b| b.hash.clone()).collect()
+        blocks
+            .iter()
+            .skip(pos + 1) // skip the matching hash
+            .map(|b| b.hash.clone())
+            .collect()
     } else {
         Vec::new()
     }

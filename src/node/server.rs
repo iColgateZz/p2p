@@ -17,7 +17,7 @@ impl HttpHandler for RequestHandler {
         match route {
             Route::GetPeers => get_peers(),
             Route::GetHashes => get_hashes(),
-            Route::GetHashesFrom(hash) => get_hashes_from(&hash),
+            Route::GetHashesAfter(hash) => get_hashes_after(&hash),
             Route::GetBlock(hash) => get_block(&hash),
             Route::PostBlock => post_block(&body),
             Route::PostTransaction => post_transaction(&body),
@@ -46,8 +46,8 @@ fn get_hashes() -> HttpResult {
     HttpResult::ok(&HashesDto { hashes })
 }
 
-fn get_hashes_from(start_hash: &str) -> HttpResult {
-    let hashes = ledger::get_block_hashes_from(start_hash);
+fn get_hashes_after(start_hash: &str) -> HttpResult {
+    let hashes = ledger::get_block_hashes_after(start_hash);
     HttpResult::ok(&HashesDto { hashes })
 }
 
