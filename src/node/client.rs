@@ -89,17 +89,17 @@ async fn fetch_block(peer: &Peer, hash: &str) {
     }
 }
 
-pub fn broadcast_transaction(req: TransactionDto) {
+pub fn broadcast_transaction(tx: TransactionDto) {
     tokio::spawn(async move {
         let peers = peers::select_random_peers();
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
             let url = peer.to_url(&Route::PostTransaction.to_path());
-            let req = req.clone();
+            let tx = tx.clone();
 
             async move {
-                let _ = client.post(&url).json(&req).send().await;
+                let _ = client.post(&url).json(&tx).send().await;
             }
         });
 
@@ -107,17 +107,17 @@ pub fn broadcast_transaction(req: TransactionDto) {
     });
 }
 
-pub fn broadcast_block(req: BlockDto) {
+pub fn broadcast_block(block: BlockDto) {
     tokio::spawn(async move {
         let peers = peers::select_random_peers();
 
         let futures = peers.into_iter().map(|peer| {
             let client = http_client();
             let url = peer.to_url(&Route::PostBlock.to_path());
-            let req = req.clone();
+            let block = block.clone();
 
             async move {
-                let _ = client.post(&url).json(&req).send().await;
+                let _ = client.post(&url).json(&block).send().await;
             }
         });
 
