@@ -7,6 +7,7 @@ use futures::future::join_all;
 use reqwest::Client;
 use std::sync::OnceLock;
 use tokio::time::{Duration, sleep};
+use serde::Serialize;
 
 static HTTP_CLIENT: OnceLock<Client> = OnceLock::new();
 
@@ -17,6 +18,25 @@ fn http_client() -> &'static Client {
             .build()
             .unwrap()
     })
+}
+
+async fn post_json_with_length<T: Serialize>(
+    client: &Client,
+    url: &str,
+    value: &T,
+) {
+    let body = match serde_json::to_string(value) {
+        Ok(b) => b,
+        Err(_) => return,
+    };
+
+    let _ = client
+        .post(url)
+        .header("Content-Type", "application/json")
+        .header("Content-Length", body.len())
+        .body(body)
+        .send()
+        .await;
 }
 
 pub async fn discover_peers() {
@@ -103,7 +123,7 @@ pub fn broadcast_transaction(tx: TransactionDto) {
             let tx = tx.clone();
 
             async move {
-                let _ = client.post(&url).json(&tx).send().await;
+                post_json_with_length(client, &url, &tx).await;
             }
         });
 
@@ -121,7 +141,7 @@ pub fn broadcast_block(block: BlockDto) {
             let block = block.clone();
 
             async move {
-                let _ = client.post(&url).json(&block).send().await;
+                post_json_with_length(client, &url, &block).await;
             }
         });
 
