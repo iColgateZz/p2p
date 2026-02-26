@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -25,7 +25,7 @@ impl Peer {
 }
 
 lazy_static! {
-    static ref KNOWN_PEERS: Mutex<HashSet<Peer>> = Mutex::new(HashSet::new());
+    static ref KNOWN_PEERS: Mutex<HashMap<Peer, u8>> = Mutex::new(HashMap::new());
 }
 
 static SELF_PEER: OnceLock<Peer> = OnceLock::new();
@@ -40,7 +40,7 @@ pub fn set_self_peer(ip: String, port: u16) {
 pub fn add_bootstrap_peers(peers: Vec<(String, u16)>) {
     let mut known = KNOWN_PEERS.lock().unwrap();
     for (ip, port) in peers {
-        known.insert(Peer::new(ip, port));
+        known.insert(Peer::new(ip, port), std::u8::MAX);
     }
     println!("[PEERS] Added {} bootstrap peers", known.len());
 }
@@ -49,7 +49,7 @@ pub fn add_peer(ip: String, port: u16) -> bool {
     let peer = Peer::new(ip, port);
     let mut known = KNOWN_PEERS.lock().unwrap();
 
-    if known.insert(peer.clone()) {
+    if known.insert(peer.clone(), std::u8::MAX).is_none() {
         println!("[PEERS] Added new peer: {}:{}", peer.ip, peer.port);
         true
     } else {
@@ -57,16 +57,28 @@ pub fn add_peer(ip: String, port: u16) -> bool {
     }
 }
 
+pub fn update_peer(p: Peer) {
+    let mut known = KNOWN_PEERS.lock().unwrap();
+
+    if let Some(score) = known.get_mut(&p) {
+        *score -= 1;
+
+        if *score == 0 {
+            known.remove(&p);
+        }
+    }
+}
+
 pub fn get_known_peers() -> Vec<Peer> {
     let known = KNOWN_PEERS.lock().unwrap();
-    known.iter().cloned().collect()
+    known.iter().map(|(k, _)| k).cloned().collect()
 }
 
 pub fn select_random_peers() -> Vec<Peer> {
     let peers = KNOWN_PEERS.lock().unwrap();
     let mut rng = thread_rng();
 
-    let mut peers: Vec<Peer> = peers.iter().map(|p| p.clone()).collect();
+    let mut peers: Vec<Peer> = peers.iter().map(|(p, _)| p.clone()).collect();
     peers.shuffle(&mut rng);
     peers.into_iter().take(100).collect()
 }

@@ -1,7 +1,7 @@
 use crate::ledger::{self, Block};
 use crate::node::protocol::{BlockDto, HashesDto, PeersDto, TransactionDto};
 use crate::node::route::Route;
-use crate::peers::{self, Peer};
+use crate::peers::{self, Peer, update_peer};
 use futures::future::join_all;
 use reqwest::Client;
 use std::sync::OnceLock;
@@ -34,9 +34,7 @@ pub async fn discover_peers() {
                         }
                     }
                 }
-                Err(e) => {
-                    eprintln!("[DISCOVERY] Failed to query {}: {}", url, e);
-                }
+                Err(_) => update_peer(peer),
             }
         }
     });
