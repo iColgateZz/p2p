@@ -20,22 +20,31 @@
   <canvas id="canvas" width="1400" height="800"></canvas>
 
   <script>
-    const NODES = [
+    const nodeSet = new Set([
       "http://127.0.0.1:5000",
-    ];
+    ]);
 
-    const POLL_INTERVAL_MS = 15000;
+    const POLL_INTERVAL_MS = 5000;
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
     let statuses = {};
 
     async function fetchStatuses() {
-      for (const node of NODES) {
+      const nodes = Array.from(nodeSet);
+
+      for (const node of nodes) {
         try {
           const resp = await fetch(node + "/status");
           const json = await resp.json();
           statuses[node] = json;
+
+          // Discover new peers
+          const peers = json.known_peers || [];
+          for (const peer of peers) {
+            const peerUrl = `http://${peer.ip}:${peer.port}`;
+            nodeSet.add(peerUrl);
+          }
         } catch (e) {
           console.warn("Failed to fetch", node);
           delete statuses[node];
@@ -49,7 +58,7 @@
       const nodes = Object.keys(statuses);
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const radius = 200;
+      const radius = Math.min(centerX, centerY) - 80;
 
       // Compute positions
       const positions = {};
