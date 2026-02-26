@@ -1,9 +1,9 @@
 use crate::http::server::{HttpHandler, HttpRequest, HttpResult};
 use crate::ledger::{self, Block, Transaction};
 use crate::node::protocol::*;
+use crate::node::transactions::{self, ParsedTx};
 use crate::node::{client, route::Route};
 use crate::peers;
-use crate::node::transactions::{self, ParsedTx};
 use std::collections::HashMap;
 
 pub struct RequestHandler;
@@ -17,6 +17,7 @@ impl HttpHandler for RequestHandler {
         };
 
         match route {
+            Route::GetStatus => get_status(),
             Route::GetPeers => get_peers(),
             Route::GetHashes => get_hashes(),
             Route::GetHashesAfter(hash) => get_hashes_after(&hash),
@@ -29,6 +30,18 @@ impl HttpHandler for RequestHandler {
             Route::PostTransfers => post_transfers(&body),
         }
     }
+}
+
+fn get_status() -> HttpResult {
+    HttpResult::ok(&StatusDto {
+        block_height: ledger::chain_len(),
+        last_block_hash: ledger::last_block_hash(),
+        pending_txs_num: ledger::pending_txs_len(),
+        known_peers: peers::get_known_peers()
+            .iter()
+            .map(|p| PeerDto::from(p))
+            .collect(),
+    })
 }
 
 fn get_peers() -> HttpResult {
@@ -112,11 +125,11 @@ fn get_users() -> HttpResult {
             match transactions::parse_transaction(&tx.data) {
                 Some(ParsedTx::CreateUser { name, balance }) => {
                     balances.insert(name, balance);
-                },
+                }
                 Some(ParsedTx::Transfer { from, to, sum }) => {
                     *balances.entry(from).or_insert(0) -= sum;
                     *balances.entry(to).or_insert(0) += sum;
-                },
+                }
                 None => {}
             }
         }

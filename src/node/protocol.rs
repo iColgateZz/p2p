@@ -1,11 +1,28 @@
+use crate::ledger::{Block, Transaction};
+use crate::peers::Peer;
 use serde::{Deserialize, Serialize};
 
-use crate::ledger::{Block, Transaction};
+#[derive(Serialize)]
+pub struct StatusDto {
+    pub block_height: usize,
+    pub last_block_hash: String,
+    pub pending_txs_num: usize,
+    pub known_peers: Vec<PeerDto>,
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct PeerDto {
     pub ip: String,
     pub port: u16,
+}
+
+impl From<&Peer> for PeerDto {
+    fn from(peer: &Peer) -> Self {
+        PeerDto {
+            ip: peer.ip.clone(),
+            port: peer.port,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]

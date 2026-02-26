@@ -1,8 +1,8 @@
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Peer {

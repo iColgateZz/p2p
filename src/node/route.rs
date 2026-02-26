@@ -2,6 +2,7 @@ use crate::http::server::HttpMethod;
 
 #[derive(Debug, Clone)]
 pub enum Route {
+    GetStatus,
     GetPeers,
     GetHashes,
     GetHashesAfter(String),
@@ -17,6 +18,7 @@ pub enum Route {
 impl Route {
     pub fn to_path(&self) -> String {
         match self {
+            Route::GetStatus => "/status".into(),
             Route::GetPeers => "/peers".into(),
             Route::GetHashes => "/hashes".into(),
             Route::GetHashesAfter(hash) => format!("/hashes/{}", hash),
@@ -32,6 +34,8 @@ impl Route {
 
     pub fn parse(method: &HttpMethod) -> Option<Self> {
         match method {
+            HttpMethod::GET(path) if path == "/status" => Some(Route::GetStatus),
+
             HttpMethod::GET(path) if path == "/peers" => Some(Route::GetPeers),
 
             HttpMethod::GET(path) if path == "/hashes" => Some(Route::GetHashes),

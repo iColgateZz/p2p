@@ -1,14 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum ParsedTx {
-    CreateUser {
-        name: String,
-        balance: i64,
-    },
-    Transfer {
-        from: String,
-        to: String,
-        sum: i64,
-    },
+    CreateUser { name: String, balance: i64 },
+    Transfer { from: String, to: String, sum: i64 },
 }
 
 pub fn parse_transaction(data: &str) -> Option<ParsedTx> {

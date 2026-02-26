@@ -129,6 +129,11 @@ pub fn take_pending_transactions() -> Vec<Transaction> {
     txs
 }
 
+pub fn pending_txs_len() -> usize {
+    let pending = PENDING_TRANSACTIONS.lock().unwrap();
+    pending.len()
+}
+
 pub fn last_block_hash() -> String {
     let blocks = BLOCKS.lock().unwrap();
     blocks.last().unwrap().hash.clone()
@@ -148,6 +153,11 @@ pub fn get_block(hash: &str) -> Option<Block> {
 pub fn get_blocks_copy() -> Vec<Block> {
     let blocks = BLOCKS.lock().unwrap();
     blocks.to_vec()
+}
+
+pub fn chain_len() -> usize {
+    let blocks = BLOCKS.lock().unwrap();
+    blocks.len()
 }
 
 pub fn get_all_block_hashes() -> Vec<String> {
