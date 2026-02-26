@@ -31,6 +31,8 @@ lazy_static! {
 static SELF_PEER: OnceLock<Peer> = OnceLock::new();
 
 pub fn set_self_peer(ip: String, port: u16) {
+    add_peer(ip.clone(), port);
+
     let peer = Peer::new(ip, port);
     SELF_PEER
         .set(peer)
