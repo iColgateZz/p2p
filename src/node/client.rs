@@ -1,6 +1,7 @@
 use crate::ledger::{self, Block};
 use crate::node::protocol::{BlockDto, HashesDto, PeerDto, TransactionDto};
 use crate::node::route::Route;
+use crate::node::RUNTIME;
 use crate::peers::{self, Peer, update_peer};
 use futures::future::join_all;
 use reqwest::Client;
@@ -93,7 +94,7 @@ async fn fetch_block(peer: &Peer, hash: &str) {
 }
 
 pub fn broadcast_transaction(tx: TransactionDto) {
-    tokio::spawn(async move {
+    RUNTIME.spawn(async move {
         let peers = peers::select_random_peers();
 
         let futures = peers.into_iter().map(|peer| {
@@ -111,7 +112,7 @@ pub fn broadcast_transaction(tx: TransactionDto) {
 }
 
 pub fn broadcast_block(block: BlockDto) {
-    tokio::spawn(async move {
+    RUNTIME.spawn(async move {
         let peers = peers::select_random_peers();
 
         let futures = peers.into_iter().map(|peer| {

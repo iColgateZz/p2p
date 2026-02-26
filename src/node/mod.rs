@@ -11,6 +11,11 @@ use crate::peers;
 use protocol::PeerDto;
 use std::{fs, process};
 use tokio::runtime::Runtime;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref RUNTIME: Runtime = Runtime::new().expect("[ERROR] Async runtime could not be started");
+}
 
 pub fn start(ip: &str, port: u16) {
     let addr = format!("{ip}:{port}");
@@ -30,28 +35,24 @@ pub fn start(ip: &str, port: u16) {
     ledger::init_genesis_block();
     println!("[LEDGER] Genesis block created");
 
-    let _rt = start_async_background_jobs();
+    start_async_background_jobs();
     println!("[NODE] Started background jobs");
 
     http::server::start(&addr, node::server::RequestHandler);
 }
 
-fn start_async_background_jobs() -> Runtime {
-    let rt = Runtime::new().expect("[ERROR] Async runtime could not be started");
-
-    rt.spawn(async {
+fn start_async_background_jobs() {
+    RUNTIME.spawn(async {
         node::client::peer_discovery_loop().await;
     });
 
-    rt.spawn(async {
+    RUNTIME.spawn(async {
         node::client::block_sync_loop().await;
     });
 
-    rt.spawn(async {
+    RUNTIME.spawn(async {
         node::client::block_creation_loop().await;
     });
-
-    rt
 }
 
 fn load_peers() {
