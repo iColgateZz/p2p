@@ -9,11 +9,6 @@ pub struct PeerDto {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PeersDto {
-    pub peers: Vec<PeerDto>,
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct HashesDto {
     pub hashes: Vec<String>,
 }

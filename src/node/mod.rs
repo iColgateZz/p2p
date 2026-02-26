@@ -8,7 +8,7 @@ use crate::http;
 use crate::ledger;
 use crate::node;
 use crate::peers;
-use protocol::PeersDto;
+use protocol::PeerDto;
 use std::{fs, process};
 use tokio::runtime::Runtime;
 
@@ -57,14 +57,13 @@ fn start_async_background_jobs() -> Runtime {
 fn load_peers() {
     let bootstrap_peers = load_peer_config();
     let peers = bootstrap_peers
-        .peers
         .iter()
         .map(|p| (p.ip.clone(), p.port))
         .collect();
     peers::add_bootstrap_peers(peers);
 }
 
-fn load_peer_config() -> PeersDto {
+fn load_peer_config() -> Vec<PeerDto> {
     let config_file = "peers_config.json";
 
     let content = fs::read_to_string(config_file).unwrap_or_else(|e| {

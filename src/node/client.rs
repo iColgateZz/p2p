@@ -1,5 +1,5 @@
 use crate::ledger::{self, Block};
-use crate::node::protocol::{BlockDto, HashesDto, PeersDto, TransactionDto};
+use crate::node::protocol::{BlockDto, HashesDto, PeerDto, TransactionDto};
 use crate::node::route::Route;
 use crate::peers::{self, Peer, update_peer};
 use futures::future::join_all;
@@ -28,8 +28,8 @@ pub async fn discover_peers() {
         async move {
             match client.get(&url).send().await {
                 Ok(r) => {
-                    if let Ok(resp) = r.json::<PeersDto>().await {
-                        for p in resp.peers {
+                    if let Ok(resp) = r.json::<Vec<PeerDto>>().await {
+                        for p in resp {
                             peers::add_peer(p.ip, p.port);
                         }
                     }

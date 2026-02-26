@@ -42,7 +42,7 @@ fn get_peers() -> HttpResult {
         })
         .collect();
 
-    HttpResult::ok(&PeersDto { peers: peer_list })
+    HttpResult::ok(&peer_list)
 }
 
 fn get_hashes() -> HttpResult {
