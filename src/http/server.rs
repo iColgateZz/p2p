@@ -203,12 +203,12 @@ impl HttpRequest {
                 .split_once(':')
                 .ok_or(HttpParseError::InvalidHeaderLine)?;
 
-            headers.insert(key.trim().to_string(), value.trim().to_string());
+            headers.insert(key.trim().to_string().to_lowercase(), value.trim().to_string());
         }
 
         if !body.is_empty() {
             let len_str = headers
-                .get("Content-Length")
+                .get("content-length")
                 .ok_or(HttpParseError::MissingContentLength)?;
 
             let expected_len = len_str
