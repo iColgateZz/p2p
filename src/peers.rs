@@ -61,7 +61,7 @@ pub fn update_peer(p: Peer) {
     let mut known = KNOWN_PEERS.lock().unwrap();
 
     if let Some(score) = known.get_mut(&p) {
-        *score -= 1;
+        *score = score.saturating_sub(1);
 
         if *score == 0 {
             known.remove(&p);
