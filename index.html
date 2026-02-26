@@ -100,16 +100,29 @@
         ctx.fillStyle = "#fff";
         ctx.font = "12px sans-serif";
         ctx.textAlign = "center";
+
         ctx.fillText(
-          `${status.block_height}`,
+          `last hash: ${status.last_block_hash.slice(0, 8)}`,
+          x,
+          y - 10
+        );
+
+        ctx.fillText(
+          `chain len: ${status.block_height}`,
           x,
           y + 4
         );
 
         ctx.fillText(
+          `known peers: ${status.known_peers.length}`,
+          x,
+          y + 20
+        );
+
+        ctx.fillText(
           node.replace("http://", ""),
           x,
-          y + 38
+          y + 36
         );
       });
     }
