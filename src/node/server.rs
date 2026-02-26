@@ -19,6 +19,7 @@ impl HttpHandler for RequestHandler {
         match route {
             Route::GetStatus => get_status(),
             Route::GetPeers => get_peers(),
+            Route::PostPeers => post_peers(&body),
             Route::GetHashes => get_hashes(),
             Route::GetHashesAfter(hash) => get_hashes_after(&hash),
             Route::GetBlock(hash) => get_block(&hash),
@@ -56,6 +57,20 @@ fn get_peers() -> HttpResult {
         .collect();
 
     HttpResult::ok(&peer_list)
+}
+
+fn post_peers(body: &str) -> HttpResult {
+    let dto: PeerDto = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(_) => {
+            return HttpResult::bad_req();
+        }
+    };
+
+    peers::add_peer(dto.ip, dto.port);
+    HttpResult::ok(&Message {
+        message: "Advertisement received"
+    })
 }
 
 fn get_hashes() -> HttpResult {

@@ -53,6 +53,10 @@ fn start_async_background_jobs() {
     RUNTIME.spawn(async {
         node::client::block_creation_loop().await;
     });
+
+    RUNTIME.spawn(async {
+        node::client::advertisement_loop().await;
+    });
 }
 
 fn load_peers() {

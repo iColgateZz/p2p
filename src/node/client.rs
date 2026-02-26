@@ -149,6 +149,24 @@ pub fn broadcast_block(block: BlockDto) {
     });
 }
 
+pub async fn broadcast_self() {
+    RUNTIME.spawn(async move {
+        let peers = peers::select_random_peers();
+
+        let futures = peers.into_iter().map(|peer| {
+            let client = http_client();
+            let url = peer.to_url(&Route::PostPeers.to_path());
+            let xself = peers::self_peer();
+
+            async move {
+                post_json_with_length(client, &url, &PeerDto::from(xself)).await;
+            }
+        });
+
+        join_all(futures).await;
+    });
+}
+
 pub async fn peer_discovery_loop() {
     loop {
         discover_peers().await;
@@ -178,5 +196,12 @@ pub async fn block_creation_loop() {
 
         ledger::add_block(&block);
         broadcast_block(BlockDto::from(&block));
+    }
+}
+
+pub async fn advertisement_loop() {
+    loop {
+        broadcast_self().await;
+        sleep(Duration::from_secs(15)).await;
     }
 }

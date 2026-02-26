@@ -28,7 +28,11 @@ lazy_static! {
     static ref KNOWN_PEERS: Mutex<HashMap<Peer, u8>> = Mutex::new(HashMap::new());
 }
 
-static SELF_PEER: OnceLock<Peer> = OnceLock::new();
+pub static SELF_PEER: OnceLock<Peer> = OnceLock::new();
+
+pub fn self_peer() -> &'static Peer {
+    SELF_PEER.get().expect("SELF_PEER not initialized")
+}
 
 pub fn set_self_peer(ip: String, port: u16) {
     add_peer(ip.clone(), port);
