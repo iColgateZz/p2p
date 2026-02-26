@@ -10,6 +10,7 @@ pub enum Route {
     PostTransaction,
     GetUsers,
     PostUsers,
+    GetTransfers,
     PostTransfers,
 }
 
@@ -24,6 +25,7 @@ impl Route {
             Route::PostTransaction => "/transactions".into(),
             Route::GetUsers => "/users".into(),
             Route::PostUsers => "/users".into(),
+            Route::GetTransfers => "/transfers".into(),
             Route::PostTransfers => "/transfers".into(),
         }
     }
@@ -49,6 +51,7 @@ impl Route {
             HttpMethod::GET(path) if path == "/users" => Some(Route::GetUsers),
             HttpMethod::POST(path) if path == "/users" => Some(Route::PostUsers),
 
+            HttpMethod::GET(path) if path == "/transfers" => Some(Route::GetTransfers),
             HttpMethod::POST(path) if path == "/transfers" => Some(Route::PostTransfers),
 
             _ => None,

@@ -24,6 +24,7 @@ impl HttpHandler for RequestHandler {
             Route::PostTransaction => post_transaction(&body),
             Route::GetUsers => get_users(),
             Route::PostUsers => post_users(&body),
+            Route::GetTransfers => get_transfers(),
             Route::PostTransfers => post_transfers(&body),
         }
     }
@@ -154,6 +155,31 @@ fn post_users(body: &str) -> HttpResult {
     HttpResult::created(&Message {
         message: "User added",
     })
+}
+
+fn get_transfers() -> HttpResult {
+    let blocks = ledger::get_blocks_copy();
+    let mut transfers = Vec::new();
+
+    for block in blocks {
+        for tx in block.transactions {
+            let data = tx.data.as_str();
+
+            if let Some((from_part, rest)) = data.split_once("->") {
+                if let Some((to, amount)) = rest.split_once(':') {
+                    if let Ok(sum) = amount.parse::<i64>() {
+                        transfers.push(TransferDto {
+                            from: from_part.to_string(),
+                            to: to.to_string(),
+                            sum,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    HttpResult::ok(&transfers)
 }
 
 fn post_transfers(body: &str) -> HttpResult {
