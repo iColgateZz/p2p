@@ -129,6 +129,8 @@ impl HttpResponse {
             "HTTP/1.0 {} OK\r\n\
             Content-Type: {}\r\n\
             Content-Length: {}\r\n\
+            Access-Control-Allow-Origin: *\r\n\
+            Access-Control-Allow-Methods: GET, POST\r\n\
             \r\n\
             {}",
             result.status,
