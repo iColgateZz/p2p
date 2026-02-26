@@ -1,5 +1,5 @@
     1. Invalidate peers that do not respond for some time?
-2. GET /status
+    2. GET /status
     3. GET /users
     4. GET /transfers
 5. js for visualization
