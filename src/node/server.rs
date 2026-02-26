@@ -3,6 +3,7 @@ use crate::ledger::{self, Block, Transaction};
 use crate::node::protocol::*;
 use crate::node::{client, route::Route};
 use crate::peers;
+use crate::node::transactions::{self, ParsedTx};
 use std::collections::HashMap;
 
 pub struct RequestHandler;
@@ -108,25 +109,15 @@ fn get_users() -> HttpResult {
 
     for block in blocks {
         for tx in block.transactions {
-            let data = tx.data.as_str();
-
-            if let Some((name, balance)) = data.split_once('=') {
-                if let Ok(amount) = balance.parse::<i64>() {
-                    balances.insert(name.to_string(), amount);
-                }
-                continue;
-            }
-
-            if let Some((from_part, rest)) = data.split_once("->") {
-                if let Some((to, amount)) = rest.split_once(':') {
-                    if let Ok(sum) = amount.parse::<i64>() {
-                        let from = from_part.to_string();
-                        let to = to.to_string();
-
-                        *balances.entry(from).or_insert(0) -= sum;
-                        *balances.entry(to).or_insert(0) += sum;
-                    }
-                }
+            match transactions::parse_transaction(&tx.data) {
+                Some(ParsedTx::CreateUser { name, balance }) => {
+                    balances.insert(name, balance);
+                },
+                Some(ParsedTx::Transfer { from, to, sum }) => {
+                    *balances.entry(from).or_insert(0) -= sum;
+                    *balances.entry(to).or_insert(0) += sum;
+                },
+                None => {}
             }
         }
     }
@@ -163,18 +154,10 @@ fn get_transfers() -> HttpResult {
 
     for block in blocks {
         for tx in block.transactions {
-            let data = tx.data.as_str();
-
-            if let Some((from_part, rest)) = data.split_once("->") {
-                if let Some((to, amount)) = rest.split_once(':') {
-                    if let Ok(sum) = amount.parse::<i64>() {
-                        transfers.push(TransferDto {
-                            from: from_part.to_string(),
-                            to: to.to_string(),
-                            sum,
-                        });
-                    }
-                }
+            if let Some(ParsedTx::Transfer { from, to, sum }) =
+                transactions::parse_transaction(&tx.data)
+            {
+                transfers.push(TransferDto { from, to, sum });
             }
         }
     }
