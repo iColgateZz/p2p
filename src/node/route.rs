@@ -8,6 +8,7 @@ pub enum Route {
     GetBlock(String),
     PostBlock,
     PostTransaction,
+    GetUsers,
     PostUsers,
     PostTransfers,
 }
@@ -21,6 +22,7 @@ impl Route {
             Route::GetBlock(hash) => format!("/blocks/{}", hash),
             Route::PostBlock => "/blocks".into(),
             Route::PostTransaction => "/transactions".into(),
+            Route::GetUsers => "/users".into(),
             Route::PostUsers => "/users".into(),
             Route::PostTransfers => "/transfers".into(),
         }
@@ -31,7 +33,6 @@ impl Route {
             HttpMethod::GET(path) if path == "/peers" => Some(Route::GetPeers),
 
             HttpMethod::GET(path) if path == "/hashes" => Some(Route::GetHashes),
-
             HttpMethod::GET(path) if path.starts_with("/hashes/") => path
                 .split('/')
                 .nth(2)
@@ -41,11 +42,11 @@ impl Route {
                 .split('/')
                 .nth(2)
                 .map(|h| Route::GetBlock(h.to_string())),
-
             HttpMethod::POST(path) if path == "/blocks" => Some(Route::PostBlock),
 
             HttpMethod::POST(path) if path == "/transactions" => Some(Route::PostTransaction),
 
+            HttpMethod::GET(path) if path == "/users" => Some(Route::GetUsers),
             HttpMethod::POST(path) if path == "/users" => Some(Route::PostUsers),
 
             HttpMethod::POST(path) if path == "/transfers" => Some(Route::PostTransfers),

@@ -145,6 +145,11 @@ pub fn get_block(hash: &str) -> Option<Block> {
     None
 }
 
+pub fn get_blocks_copy() -> Vec<Block> {
+    let blocks = BLOCKS.lock().unwrap();
+    blocks.to_vec()
+}
+
 pub fn get_all_block_hashes() -> Vec<String> {
     let mut v = Vec::new();
 

@@ -3,6 +3,7 @@ use crate::ledger::{self, Block, Transaction};
 use crate::node::protocol::*;
 use crate::node::{client, route::Route};
 use crate::peers;
+use std::collections::HashMap;
 
 pub struct RequestHandler;
 
@@ -21,6 +22,7 @@ impl HttpHandler for RequestHandler {
             Route::GetBlock(hash) => get_block(&hash),
             Route::PostBlock => post_block(&body),
             Route::PostTransaction => post_transaction(&body),
+            Route::GetUsers => get_users(),
             Route::PostUsers => post_users(&body),
             Route::PostTransfers => post_transfers(&body),
         }
@@ -97,6 +99,43 @@ fn post_block(body: &str) -> HttpResult {
             message: "Block already exists or its hash does not match the hash of the last block in the chain",
         })
     }
+}
+
+fn get_users() -> HttpResult {
+    let blocks = ledger::get_blocks_copy();
+    let mut balances: HashMap<String, i64> = HashMap::new();
+
+    for block in blocks {
+        for tx in block.transactions {
+            let data = tx.data.as_str();
+
+            if let Some((name, balance)) = data.split_once('=') {
+                if let Ok(amount) = balance.parse::<i64>() {
+                    balances.insert(name.to_string(), amount);
+                }
+                continue;
+            }
+
+            if let Some((from_part, rest)) = data.split_once("->") {
+                if let Some((to, amount)) = rest.split_once(':') {
+                    if let Ok(sum) = amount.parse::<i64>() {
+                        let from = from_part.to_string();
+                        let to = to.to_string();
+
+                        *balances.entry(from).or_insert(0) -= sum;
+                        *balances.entry(to).or_insert(0) += sum;
+                    }
+                }
+            }
+        }
+    }
+
+    let users: Vec<UserDto> = balances
+        .into_iter()
+        .map(|(name, balance)| UserDto { name, balance })
+        .collect();
+
+    HttpResult::ok(&users)
 }
 
 fn post_users(body: &str) -> HttpResult {
