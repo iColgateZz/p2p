@@ -47,6 +47,7 @@ fn get_hashes() -> HttpResult {
 }
 
 fn get_hashes_after(start_hash: &str) -> HttpResult {
+    //TODO: Should probably send bad_req when there is no such hash
     let hashes = ledger::get_block_hashes_after(start_hash);
     HttpResult::ok(&HashesDto { hashes })
 }

@@ -46,25 +46,30 @@ pub async fn discover_peers() {
 
 pub async fn fetch_blocks_from_peers() {
     let peers = peers::select_random_peers();
+    let my_last_hash = ledger::last_block_hash();
 
     let futures = peers.into_iter().map(|peer| {
         let client = http_client();
-        let url = peer.to_url(&Route::GetHashes.to_path());
+        let route = Route::GetHashesAfter(my_last_hash.clone());
+        let url = peer.to_url(&route.to_path());
 
         async move {
-            println!("[SYNC] Fetching blocks from: {}", url);
+            // println!("[SYNC] Querying hashes from: {}", url);
 
-            match client.get(&url).send().await {
-                Ok(resp) => {
-                    if let Ok(data) = resp.json::<HashesDto>().await {
-                        for hash in data.hashes {
-                            fetch_block(&peer, &hash).await;
-                        }
-                    }
-                }
-                Err(e) => {
-                    eprintln!("[SYNC] Failed to fetch block list: {}", e);
-                }
+            let Ok(resp) = client.get(&url).send().await else {
+                return;
+            };
+
+            let Ok(data) = resp.json::<HashesDto>().await else {
+                return;
+            };
+
+            //TODO: actually one peer should be enough to fetch all blocks,
+            //      no need to ask other peers.
+            //TODO: optimization - ask many peers simultaneously about
+            //      different missing blocks and enqueue them
+            for hash in data.hashes {
+                fetch_block(&peer, &hash).await;
             }
         }
     });
