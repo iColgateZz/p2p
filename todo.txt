@@ -2,6 +2,6 @@
     2. GET /status
     3. GET /users
     4. GET /transfers
-5. js for visualization
+    5. js for visualization
 6. docker for separate networks
     7. fix fetching blocks: do not ask for all hashes, rebuild missing chain blocks
