@@ -5,3 +5,4 @@
     5. js for visualization
 6. docker for separate networks
     7. fix fetching blocks: do not ask for all hashes, rebuild missing chain blocks
+8. write blocks & peers to disk
