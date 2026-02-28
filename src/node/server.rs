@@ -69,7 +69,7 @@ fn post_peers(body: &str) -> HttpResult {
 
     peers::add_peer(dto.ip, dto.port);
     HttpResult::ok(&Message {
-        message: "Advertisement received"
+        message: "Advertisement received",
     })
 }
 
@@ -165,6 +165,7 @@ fn post_users(body: &str) -> HttpResult {
             return HttpResult::bad_req();
         }
     };
+
 
     let data = format!("{}={}", dto.name, dto.balance);
     let tx = Transaction::from_data(data);

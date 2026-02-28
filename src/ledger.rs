@@ -47,8 +47,7 @@ impl Transaction {
 
     pub fn from_data(data: String) -> Self {
         let timestamp = now();
-        let input = format!("{}{}", data, timestamp);
-        Self::new(input, timestamp)
+        Self::new(data, timestamp)
     }
 }
 

@@ -1,0 +1,135 @@
+networks:
+  p2p_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+x-node-base: &node-base
+  build:
+    context: . # directory containing Dockerfile + source
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  networks:
+    - p2p_net
+
+services:
+  # Bootstrap node
+  node01:
+    <<: *node-base
+    container_name: p2p-node01
+    hostname: node01
+    environment:
+      NODE_IP: "172.20.0.2"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.2
+
+  # Regular nodes
+  node02:
+    <<: *node-base
+    container_name: p2p-node02
+    hostname: node02
+    environment:
+      NODE_IP: "172.20.0.3"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.3
+    depends_on:
+      - node01
+
+  node03:
+    <<: *node-base
+    container_name: p2p-node03
+    hostname: node03
+    environment:
+      NODE_IP: "172.20.0.4"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.4
+    depends_on:
+      - node01
+
+  node04:
+    <<: *node-base
+    container_name: p2p-node04
+    hostname: node04
+    environment:
+      NODE_IP: "172.20.0.5"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.5
+    depends_on:
+      - node01
+
+  node05:
+    <<: *node-base
+    container_name: p2p-node05
+    hostname: node05
+    environment:
+      NODE_IP: "172.20.0.6"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.6
+    depends_on:
+      - node01
+
+  node06:
+    <<: *node-base
+    container_name: p2p-node06
+    hostname: node06
+    environment:
+      NODE_IP: "172.20.0.7"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.7
+    depends_on:
+      - node01
+
+  node07:
+    <<: *node-base
+    container_name: p2p-node07
+    hostname: node07
+    environment:
+      NODE_IP: "172.20.0.8"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.8
+    depends_on:
+      - node01
+
+  node08:
+    <<: *node-base
+    container_name: p2p-node08
+    hostname: node08
+    environment:
+      NODE_IP: "172.20.0.9"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.9
+    depends_on:
+      - node01
+
+  node09:
+    <<: *node-base
+    container_name: p2p-node09
+    hostname: node09
+    environment:
+      NODE_IP: "172.20.0.10"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.10
+    depends_on:
+      - node01
+
+  node10:
+    <<: *node-base
+    container_name: p2p-node10
+    hostname: node10
+    environment:
+      NODE_IP: "172.20.0.11"
+    networks:
+      p2p_net:
+        ipv4_address: 172.20.0.11
+    depends_on:
+      - node01
