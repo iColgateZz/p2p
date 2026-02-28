@@ -205,7 +205,10 @@ impl HttpRequest {
                 .split_once(':')
                 .ok_or(HttpParseError::InvalidHeaderLine)?;
 
-            headers.insert(key.trim().to_string().to_lowercase(), value.trim().to_string());
+            headers.insert(
+                key.trim().to_string().to_lowercase(),
+                value.trim().to_string(),
+            );
         }
 
         if !body.is_empty() {

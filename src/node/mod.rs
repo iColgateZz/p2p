@@ -8,13 +8,14 @@ use crate::http;
 use crate::ledger;
 use crate::node;
 use crate::peers;
+use lazy_static::lazy_static;
 use protocol::PeerDto;
 use std::{fs, process};
 use tokio::runtime::Runtime;
-use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref RUNTIME: Runtime = Runtime::new().expect("[ERROR] Async runtime could not be started");
+    static ref RUNTIME: Runtime =
+        Runtime::new().expect("[ERROR] Async runtime could not be started");
 }
 
 pub fn start(ip: &str, port: u16) {

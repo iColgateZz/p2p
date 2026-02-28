@@ -1,13 +1,13 @@
 use crate::ledger::{self, Block};
+use crate::node::RUNTIME;
 use crate::node::protocol::{BlockDto, HashesDto, PeerDto, TransactionDto};
 use crate::node::route::Route;
-use crate::node::RUNTIME;
 use crate::peers::{self, Peer, update_peer};
-use futures::future::join_all;
 use reqwest::Client;
-use std::sync::OnceLock;
-use tokio::time::{Duration, sleep};
 use serde::Serialize;
+use std::sync::OnceLock;
+use tokio::task::JoinSet;
+use tokio::time::{Duration, sleep};
 
 static HTTP_CLIENT: OnceLock<Client> = OnceLock::new();
 
@@ -20,11 +20,7 @@ fn http_client() -> &'static Client {
     })
 }
 
-async fn post_json_with_length<T: Serialize>(
-    client: &Client,
-    url: &str,
-    value: &T,
-) {
+async fn post_json_with_length<T: Serialize>(client: &Client, url: &str, value: &T) {
     let body = match serde_json::to_string(value) {
         Ok(b) => b,
         Err(_) => return,
@@ -41,12 +37,13 @@ async fn post_json_with_length<T: Serialize>(
 
 pub async fn discover_peers() {
     let peers = peers::select_random_peers();
+    let mut set = JoinSet::new();
+    let client = http_client();
 
-    let futures = peers.into_iter().map(|peer| {
-        let client = http_client();
+    for peer in peers {
         let url = peer.to_url(&Route::GetPeers.to_path());
 
-        async move {
+        set.spawn(async move {
             match client.get(&url).send().await {
                 Ok(r) => {
                     if let Ok(resp) = r.json::<Vec<PeerDto>>().await {
@@ -57,24 +54,23 @@ pub async fn discover_peers() {
                 }
                 Err(_) => update_peer(peer),
             }
-        }
-    });
+        });
+    }
 
-    join_all(futures).await;
+    while let Some(_) = set.join_next().await {}
 }
 
 pub async fn fetch_blocks_from_peers() {
     let peers = peers::select_random_peers();
     let my_last_hash = ledger::last_block_hash();
+    let client = http_client();
+    let route = Route::GetHashesAfter(my_last_hash);
+    let mut set = JoinSet::new();
 
-    let futures = peers.into_iter().map(|peer| {
-        let client = http_client();
-        let route = Route::GetHashesAfter(my_last_hash.clone());
+    for peer in peers {
         let url = peer.to_url(&route.to_path());
 
-        async move {
-            // println!("[SYNC] Querying hashes from: {}", url);
-
+        set.spawn(async move {
             let Ok(resp) = client.get(&url).send().await else {
                 return;
             };
@@ -90,10 +86,10 @@ pub async fn fetch_blocks_from_peers() {
             for hash in data.hashes {
                 fetch_block(&peer, &hash).await;
             }
-        }
-    });
+        });
+    }
 
-    join_all(futures).await;
+    while set.join_next().await.is_some() {}
 }
 
 async fn fetch_block(peer: &Peer, hash: &str) {
@@ -116,54 +112,55 @@ async fn fetch_block(peer: &Peer, hash: &str) {
 pub fn broadcast_transaction(tx: TransactionDto) {
     RUNTIME.spawn(async move {
         let peers = peers::select_random_peers();
+        let client = http_client();
+        let mut set = JoinSet::new();
 
-        let futures = peers.into_iter().map(|peer| {
-            let client = http_client();
+        for peer in peers {
             let url = peer.to_url(&Route::PostTransaction.to_path());
             let tx = tx.clone();
 
-            async move {
+            set.spawn(async move {
                 post_json_with_length(client, &url, &tx).await;
-            }
-        });
+            });
+        }
 
-        join_all(futures).await;
+        while set.join_next().await.is_some() {}
     });
 }
 
 pub fn broadcast_block(block: BlockDto) {
     RUNTIME.spawn(async move {
         let peers = peers::select_random_peers();
+        let client = http_client();
+        let mut set = JoinSet::new();
 
-        let futures = peers.into_iter().map(|peer| {
-            let client = http_client();
+        for peer in peers {
             let url = peer.to_url(&Route::PostBlock.to_path());
             let block = block.clone();
 
-            async move {
+            set.spawn(async move {
                 post_json_with_length(client, &url, &block).await;
-            }
-        });
+            });
+        }
 
-        join_all(futures).await;
+        while set.join_next().await.is_some() {}
     });
 }
-
 pub async fn broadcast_self() {
     RUNTIME.spawn(async move {
         let peers = peers::select_random_peers();
+        let client = http_client();
+        let mut set = JoinSet::new();
+        let xself = peers::self_peer();
 
-        let futures = peers.into_iter().map(|peer| {
-            let client = http_client();
+        for peer in peers {
             let url = peer.to_url(&Route::PostPeers.to_path());
-            let xself = peers::self_peer();
-
-            async move {
+            set.spawn(async move {
                 post_json_with_length(client, &url, &PeerDto::from(xself)).await;
-            }
-        });
+            });
+        }
 
-        join_all(futures).await;
+        while set.join_next().await.is_some() {}
     });
 }
 
