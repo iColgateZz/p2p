@@ -69,7 +69,7 @@ fn post_peers(body: &str) -> HttpResult {
 
     peers::add_peer(dto.ip, dto.port);
     HttpResult::ok(&Message {
-        message: "Advertisement received"
+        message: "Advertisement received",
     })
 }
 
