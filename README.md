@@ -36,7 +36,8 @@ cargo build --release
 ./target/release/p2p <PORT>
 ```
 
-Kui \<PORT> ei ole määratud, siis _by default_ kasutatakse porti 5000.
+Kui `<PORT>` ei ole määratud, siis _by default_ kasutatakse _port_-i `5000`.  
+_By default_ kasutatakse _ip_ `127.0.0.1`.
 
 ---
 
