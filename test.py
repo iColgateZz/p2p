@@ -3,7 +3,7 @@ from time import sleep
 import sys
 
 PORTS = list(range(5000, 5100))
-BASE_URL = "http://localhost:{}"
+BASE_URL = "http://127.0.0.1:{}"
 SYNC_WAIT_SECONDS = 60
 
 print("Checking node statuses...")
