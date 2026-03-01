@@ -17,7 +17,7 @@ cd p2p
 ### Eeldused
 
 Sõlme jooksutamiseks on minimaalselt vaja _Rust_-i kompilaatorit.
-Ametliku paigaldusjuhendi leiad siit: https://doc.rust-lang.org/book/ch01-01-installation.html
+Ametliku paigaldusjuhendi leiate siit: https://doc.rust-lang.org/book/ch01-01-installation.html
 
 ### Sõlme käivitamine
 
@@ -37,6 +37,26 @@ cargo build --release
 ```
 
 Kui \<PORT> ei ole määratud, siis _by default_ kasutatakse porti 5000.
+
+---
+
+## Süsteemi töö (väga) üldine kirjeldus
+
+Iga sõlm on samal ajal nii klient kui ka server, mis tähendab, et iga sõlm nii küsib teistelt midagi kui ka vastab nende küsimustele. Koos sõlmed moodustavad võrku ning jagavad omavahel teadmisi naabritest, tehingutest ning plokkidest.
+
+Peamised andmestruktuurid igal sõlmel on naabrite list (_peer list_), ootelolevad tehingud (_pending transactions_) ning plokiahel (_blockchain_). 
+
+Kui sõlm liitub võrguga, siis ta alguses üritab kontakti saada nende sõlmedega, mis ta luges `peer_config.json` failist. Nendelt ta saab kiiresti küsida veel naabreid. 
+
+Kohe tema hakkab ka uurima, mis on hetkeseis plokiahelaga. Ta võtab oma viimase ploki _hash_-i ning küsib teistelt, kas on veel _hash_-e, mis tulevad ahelas pärast minu _hash_-i. Kui selliseid on, siis kasutades saadud uusi _hash_-e ta küsib naabritelt puuduolevaid plokke ning ehitab ahela lõpuni.
+
+Ka edaspidi hakkab ta regulaarselt naabritelt küsima nende naabrite kohta ning mis on hetkel võrgus viimane _hash_. Lisaks sellele tegeleb ta enesereklaamiga: iga teatud aja tagant saadab naabritele infot enda _ip_ ning _port_-i kohta.
+
+Iga sõlm on võimeline vastu võtta erinevaid kasutaja tehinguid. Hetkel on toetatud 2 tehingute tüüpi: uue kasutaja loomine ning ülekanne ühelt kasutajalt teisele.
+
+Saadud tehingud saadetakse naabritele lailali ning salvestatakse ootelolevate tehingute listi. Iga teatud aja tagant sõlmed võtavad need tehingud, panevad need uute plokki ning saadavad selle laiali. Niimoodi plokiahel kasvab.
+
+Igal tehingul ning plokil on olemas oma _hash_. Hetkel aga meie neid otseselt mitte kuidagi ei kasuta ehk mingit tehingute ega plokkide sünkroniseerimist ei ole. 
 
 ---
 
