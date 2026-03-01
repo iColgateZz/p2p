@@ -2,4 +2,3 @@ target
 .vscode
 .DS_Store
 Cargo.lock
-test3
