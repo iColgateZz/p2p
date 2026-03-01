@@ -16,8 +16,8 @@ cd p2p
 
 ### Eeldused
 
-Sõlme jooksutamiseks on minimaalselt vaja _Rust_-i kompilaatorit.
-Ametliku paigaldusjuhendi leiate siit: https://doc.rust-lang.org/book/ch01-01-installation.html
+Sõlme jooksutamiseks on vaja _Rust_-i kompilaatorit.
+Ametliku paigaldusjuhendi leiate siit: https://doc.rust-lang.org/book/ch01-01-installation.html.
 
 ### Sõlme käivitamine
 
@@ -47,7 +47,7 @@ Iga sõlm on samal ajal nii klient kui ka server, mis tähendab, et iga sõlm ni
 
 Peamised andmestruktuurid igal sõlmel on naabrite list (_peer list_), ootelolevad tehingud (_pending transactions_) ning plokiahel (_blockchain_). 
 
-Kui sõlm liitub võrguga, siis ta alguses üritab kontakti saada nende sõlmedega, mis ta luges `peer_config.json` failist. Nendelt ta saab kiiresti küsida veel naabreid. 
+Kui sõlm liitub võrguga, siis ta alguses üritab kontakti saada nende sõlmedega, mis ta luges `peers_config.json` failist. Nendelt ta saab kiiresti küsida veel naabreid. 
 
 Kohe tema hakkab ka uurima, mis on hetkeseis plokiahelaga. Ta võtab oma viimase ploki _hash_-i ning küsib teistelt, kas on veel _hash_-e, mis tulevad ahelas pärast minu _hash_-i. Kui selliseid on, siis kasutades saadud uusi _hash_-e ta küsib naabritelt puuduolevaid plokke ning ehitab ahela lõpuni.
 
@@ -58,6 +58,18 @@ Iga sõlm on võimeline vastu võtta erinevaid kasutaja tehinguid. Hetkel on toe
 Saadud tehingud saadetakse naabritele lailali ning salvestatakse ootelolevate tehingute listi. Iga teatud aja tagant sõlmed võtavad need tehingud, panevad need uute plokki ning saadavad selle laiali. Niimoodi plokiahel kasvab.
 
 Igal tehingul ning plokil on olemas oma _hash_. Hetkel aga meie neid otseselt mitte kuidagi ei kasuta ehk mingit tehingute ega plokkide sünkroniseerimist ei ole. 
+
+---
+
+## Võrgu topoloogia
+
+Meie süsteemis ei ole mingeid erilisi sõlmi. Kõik sõlmed on samasugused ning funktsioneerivad täpselt samamoodi. Kõige lihtsama võrgu moodustamiseks piisab ühest sõlmest. Tema hakkab iseendaga suhtlema.
+
+Kuid suurema võrgu moodustamiseks on ikka vaja, et võrgus oleks vähemalt üks sõlm neist, mis on mainitud `peers_config.json` failis. Ilma nendeta ei oleks võimalik sõlmi omavahel suhtlema panna.
+
+Üks sellistest sõlmedest on aadressiga `127.0.0.1:5000` ning teine on `172.20.0.2:5000`. Esimest saab käima panna jookustades `cargo run` või `./target/release/p2p`. Teist pannakse käima koos _Docker_ võrguga, aga sellest räägitakse hiljem katseosas.
+
+Võrku saab visualiseerida tehes _browser_-is lahti `index.html` faili.
 
 ---
 
