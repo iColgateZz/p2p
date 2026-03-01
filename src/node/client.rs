@@ -180,7 +180,7 @@ pub async fn block_sync_loop() {
 
 pub async fn block_creation_loop() {
     loop {
-        sleep(Duration::from_secs(60)).await;
+        sleep(Duration::from_secs(45)).await;
 
         let pending = ledger::take_pending_transactions();
         if pending.is_empty() {
