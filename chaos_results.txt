@@ -1,0 +1,30 @@
+NUM_LOCAL_NODES = 50
+CHAOS_DURATION = 5 * 60
+TRANSFER_INTERVAL = 2
+SPAWN_PROBABILITY = 0.05
+KILL_PROBABILITY = 0.05
+POST_CHAOS_WAIT = 30
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 60
+
+Blockchain heights observed: 2
+  Height 15: 12 node(s)
+  Height 22: 48 node(s)
+
+Last block hashes observed: 2
+  Hash 52ebcb19… : 12 node(s)
+  Hash 90b25550… : 48 node(s)
+
+Distinct balance states: 2
+
+State #1 observed on 12 node(s):
+  Alice: 62
+  Bob: 583
+  Eve: 333
+
+State #2 observed on 48 node(s):
+  Alice: 84
+  Bob: 69
+  Eve: -53
+
+========================================
