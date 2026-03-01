@@ -1,7 +1,7 @@
 
 # ITI0215_26 Hajusüsteemid
 
-## Praktikum No 1 – P2P süsteem
+## Praktikum No 1 – Lihtne P2P süsteem
 
 -------------------------------
 
@@ -35,6 +35,8 @@ cargo run -- <PORT>
 cargo build --release
 ./target/release/p2p <PORT>
 ```
+
+Kui \<PORT> ei ole määratud, siis _by default_ kasutatakse porti 5000.
 
 ---
 
