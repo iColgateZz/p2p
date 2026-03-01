@@ -54,3 +54,5 @@ Scenario: Node joins the network
 In the background:
     1. Peer discovery  -> ask peers for their peers to expand the network
     2. Block discovery -> just in case the block did not reach the node
+    3. Block creation -> take pending transactions, create a new block and broadcast it
+    4. Self advertisement -> tell your peers about your ip and port
