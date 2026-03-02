@@ -444,3 +444,32 @@ Mõned katsetulemused on välja toodud failis `chaos_results.txt`
 Selline tulemus on oodatud, kuna sõlmedel puuduvad konsensus algoritm ning _fork_-ide lahendamine.
 
 ---
+
+### Muud katsed
+
+Kirjutasime _HTTP_ serveri ise. Tahtsime seda testida. Kasutasime `wrk`: https://github.com/wg/wrk. 
+
+```
+> wrk -c400 -d10 -t4 http://127.0.0.1:5000
+Running 10s test @ http://127.0.0.1:5000
+  4 threads and 400 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     6.69ms   10.13ms 187.56ms   98.04%
+    Req/Sec     4.73k     1.14k    6.58k    83.08%
+  187020 requests in 10.09s, 30.50MB read
+  Non-2xx or 3xx responses: 187020
+Requests/sec:  18531.73
+Transfer/sec:      3.02MB
+```
+
+---
+
+Kasutades lihtsaid _python_-i skripte saab lisada võrku korraga suure hulga sõlmi ning need ka võrgust eemaldada. Kuid sellised testid meile eriti palju kasulikku infot ei andnud. Kui sõlmede arv on > 100, siis _host_ arvuti ei saa enam koormusega hakkama: ei ole kas piisavalt _RAM_-i või _CPU load_ on liiga suur. Need katsed rohkem testisid meie riistvara kui tarkvaralist lahendust.
+
+---
+
+Hajusosa on meil simuleeritud _Docker_-iga (2. ja 3. katse). 
+
+Muidu testisime käsitsi ka kahe arvuti peal. Selleks on vaja natuke muuta koodi, et vaikimisi _ip_ oleks mitte `127.0.0.1` vaid selle arvuti _local ip_ aadress (nt `192.168.1.204`). Ka failis `peers_config.json` tuleb muuta _ip_-d nendeks, mis kahe arvuti _local ip_-d on.
+
+Käivitasime mõlemad 50 sõlme ning käsitsi simuleerisime _curl_-iga erinevad tehingud. Nagu oodatud mõne aja pärast info ei olnud enam sünkroniseeritud. Muidu sõlmed suhtlesid omavahel.
