@@ -385,6 +385,30 @@ Jooksutage fail `test/test.sh`. See loob 100 sõlme ühe _ip_ aadressiga (127.0.
 
 Selle testi jooksul kontrollitakse, et sõlmed leiavad üksteist võrgus, tehakse paar tehingut ning võrreldatakse erinevate sõlmede olekut pärast võrgu mõnda aega töötamist.
 
-Selle testiga näitame, et põhimõtteliselt meie võrk töötab.
+Selle testiga näitame, et põhimõtteliselt meie võrk töötab, sõlmed suhtlevad omavahel ning jagavad infot ülekannete kohta.
 
+Loodud sõlmede tapmiseks võib kasutada `killall p2p` käsku.
+
+
+### Teine katse
+
+#### Eeldused
+
+Selle jaoks kasutame _Docker_-it. _Linux_-i masinas piisab ainult sellest.  
+
+_MacOs_-i jaoks on vaja alla laadida _Docker Desktop_: https://docs.docker.com/desktop/setup/install/mac-install/ ning panna ta käima. Lisaks sellele _Mac_-il tekib probleem, et _docker daemon_ töötab mitte _host_ süsteemis, vaid _Linux_ _VM_-is. Seetõttu ei saa ilma lisa _soft_-ita saata näiteks _curl_-iga päringuid otse konteinerisse kasutades konteineri _ip_-d. Seda probleemi lahendab see _git repo_: https://github.com/chipmk/docker-mac-net-connect. 
+
+Kui need eeldused ei ole täidetud, siis testi jooksutada ei saa.
+
+#### Test ise
+
+Projekti juurkaustas asub `docker-compose.yml` fail. Jooksutades seda käsuga `docker compose up -d` loome eraldi _Docker_ võrgu ning paneme sinna 10 masinat erinevate _ip_-dega. Kõik masinad töötavad _port_-il 5000.
+
+Jooksutades `python3 test/test2.py` paneme käima samasuguse testi nagu eelmises katses.
+
+Lisaks võib ka testi ajal käsitsi käima panna mõned teised sõlmed ja tappa need. Tappa saab ka konteinerites olevaid sõlmi. Selle jaoks on vaja alguses saada konteineri nime või _id_ jookustades `docker ps`. Siis saab jooksutada `docker kill <NAME OR ID>`. 
+
+Selle testi puhul näitame, et võrk toimib nii erinevate portide kui ka _ip_-dega olevatel masinatel.
+
+Kuna selles testis osaleb vähe sõlmi, on täitsa võimalik kasutada võrgu visualiseerimist. Sellest on täpsemalt kirjas võrgu topoloogia osas.
 
