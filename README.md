@@ -86,18 +86,18 @@ Kui vastuse _status code_ ei ole kirjutatud, siis on see `200 OK`.
 
 ---
 
-## 1. `GET /status`
+### 1. `GET /status`
 
 Tagastab sõlme hetkeseisu.
 Kasutatakse peamiselt võrgu visualiseerimiseks ja testimiseks.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/status
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 {
@@ -113,18 +113,18 @@ curl http://127.0.0.1:5000/status
 
 ---
 
-## 2. `GET /peers`
+### 2. `GET /peers`
 
 Tagastab juhusliku valiku teadaolevatest naabersõlmedest.
 Kasutatakse _peer discovery_ mehhanismis.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/peers
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 [
@@ -135,18 +135,18 @@ curl http://127.0.0.1:5000/peers
 
 ---
 
-## 3. `POST /peers`
+### 3. `POST /peers`
 
 Sõlm reklaamib ennast teistele.
 
-### Päring
+#### Päring
 
 ```bash
 curl -X POST http://127.0.0.1:5000/peers \
   -d '{"ip":"127.0.0.1","port":5003}'
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 { "message": "Advertisement received" }
@@ -154,17 +154,17 @@ curl -X POST http://127.0.0.1:5000/peers \
 
 ---
 
-## 4. `GET /hashes`
+### 4. `GET /hashes`
 
 Tagastab kõik plokiahela plokkide _hash_-id õiges järjekorras.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/hashes
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 {
@@ -178,18 +178,18 @@ curl http://127.0.0.1:5000/hashes
 
 ---
 
-## 5. `GET /hashes/{hash}`
+### 5. `GET /hashes/{hash}`
 
 Tagastab kõik plokkide _hash_-id, mis tulevad pärast antud _hash_-i.
 Kasutatakse plokiahelas puuduvate plokide tuvastamiseks.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/hashes/9f12de...
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 {
@@ -202,17 +202,17 @@ curl http://127.0.0.1:5000/hashes/9f12de...
 
 ---
 
-## 6. `GET /blocks/{hash}`
+### 6. `GET /blocks/{hash}`
 
 Tagastab konkreetse ploki antud _hash_-i põhjal.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/blocks/a3f1c9...
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 {
@@ -233,18 +233,18 @@ Kui plokk antud _hash_-iga ei eksisteeri, tagastatakse _404 Not Found_.
 
 ---
 
-## 7. `POST /blocks`
+### 7. `POST /blocks`
 
 Lisab uue ploki ahelasse ja _broadcast_-ib selle teistele sõlmedele.
 
-### Päring
+#### Päring
 
 ```bash
 curl -X POST http://127.0.0.1:5000/blocks \
   -d '{ ... }'
 ```
 
-### Vastus
+#### Vastus
 `201 Created`
 ```json
 { "message": "Block accepted" }
@@ -261,11 +261,11 @@ Kui plokk juba eksisteerib või ei sobi ahelasse:
 
 ---
 
-## 8. `POST /transactions`
+### 8. `POST /transactions`
 
 Lisab uue tehingu ootelolevate tehingute hulka ja _broadcast_-ib selle võrku.
 
-### Päring
+#### Päring
 
 ```bash
 curl -X POST http://127.0.0.1:5000/transactions \
@@ -276,7 +276,7 @@ curl -X POST http://127.0.0.1:5000/transactions \
   }'
 ```
 
-### Vastus
+#### Vastus
 
 `201 Created`
 ```json
@@ -292,17 +292,17 @@ Kui tehing on juba olemas:
 
 ---
 
-## 9. `GET /users`
+### 9. `GET /users`
 
 Tagastab kõik kasutajad ja nende kontosummad arvutatud plokiahela põhjal.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/users
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 [
@@ -313,18 +313,18 @@ curl http://127.0.0.1:5000/users
 
 ---
 
-## 10. `POST /users`
+### 10. `POST /users`
 
 Loob uue kasutaja ja _broadcast_-ib selle võrku.
 
-### Päring
+#### Päring
 
 ```bash
 curl -X POST http://127.0.0.1:5000/users \
   -d '{"name":"Bob","balance":987}'
 ```
 
-### Vastus
+#### Vastus
 
 `201 Created`
 ```json
@@ -333,17 +333,17 @@ curl -X POST http://127.0.0.1:5000/users \
 
 ---
 
-## 11. `GET /transfers`
+### 11. `GET /transfers`
 
 Tagastab kõik plokiahelas toimunud ülekanded.
 
-### Päring
+#### Päring
 
 ```bash
 curl http://127.0.0.1:5000/transfers
 ```
 
-### Vastus
+#### Vastus
 
 ```json
 [
@@ -353,18 +353,18 @@ curl http://127.0.0.1:5000/transfers
 
 ---
 
-## 12. `POST /transfers`
+### 12. `POST /transfers`
 
 Lisab uue ülekande tehinguna ja _broadcast_-ib selle võrku.
 
-### Päring
+#### Päring
 
 ```bash
 curl -X POST http://127.0.0.1:5000/transfers \
   -d '{"from":"Bob","to":"Alice","sum":100}'
 ```
 
-### Vastus
+#### Vastus
 
 `201 Created`
 ```json
