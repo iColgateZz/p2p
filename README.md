@@ -372,3 +372,19 @@ curl -X POST http://127.0.0.1:5000/transfers \
 ```
 
 ---
+
+## Katsed
+
+Tegime erinevad katsed. Palju testisime käsitsi, aga on olemas ka mõned automatiseeritud testid `test` kaustas.
+
+Katsete tegemiseks eeldatakse, et Teie kasutate kas mingit _Linux_-i _distribution_-it või _MacOS_-i.
+
+### Esimene katse
+
+Jooksutage fail `test/test.sh`. See loob 100 sõlme ühe _ip_ aadressiga (127.0.0.1) ja erinevate _port_-idega (5000 - 5099). Siis jooksutage `python3 test/test.py`. See paneb käima testi, mis kestab paar minutit.
+
+Selle testi jooksul kontrollitakse, et sõlmed leiavad üksteist võrgus, tehakse paar tehingut ning võrreldatakse erinevate sõlmede olekut pärast võrgu mõnda aega töötamist.
+
+Selle testiga näitame, et põhimõtteliselt meie võrk töötab.
+
+
