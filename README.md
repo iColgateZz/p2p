@@ -431,7 +431,7 @@ Pange _Docker_-i konteinerid käima jooksutades `docker compose up -d`. Siis joo
 
 Selles failis on olemas mõned konstandid, millega saab testi käitumist muuta. Põhimõtteliselt lisaks _Docker_-is olevatele konteineritele tekitatakse juurde veel `NUM_LOCAL_NODES` lokaaalset sõlme. 
 
-Testi põhiosa kestab `CHAOS_DURATION` sekundit ning iga `TRANSFER_INTERVAL` sekundi tagant üks sõlm teeb suvalist ülekannet. Sama intervalli tagant teatud tõenäosusega võrku lisatakse uus sõlm või eemaldatakse mingi olemasolev.
+Testi põhiosa kestab `CHAOS_DURATION` sekundit ning iga `TRANSFER_INTERVAL` sekundi tagant üks suvaline sõlm teeb suvalist ülekannet. Sama intervalli tagant teatud tõenäosusega võrku lisatakse uus sõlm või eemaldatakse mingi olemasolev.
 
 Testi lõpus sõlmedelt korjatakse statistikat ning tehakse kokkuvõte.
 
