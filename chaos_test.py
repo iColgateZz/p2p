@@ -51,7 +51,7 @@ def main():
     print(f"[INFO] Tracking {len(docker_nodes)} docker nodes")
 
     local_nodes = []
-    NUM_LOCAL_NODES = 75
+    NUM_LOCAL_NODES = 80
     base_port = 5000
 
     print(f"[INFO] Trying to spawn {NUM_LOCAL_NODES} local nodes")
@@ -77,7 +77,7 @@ def main():
 
     print(f"[INFO] Chaos simulation begins")
     CHAOS_DURATION = 10 * 60        # minutes
-    TRANSFER_INTERVAL = 2          # seconds between actions
+    TRANSFER_INTERVAL = 10          # seconds between actions
     SPAWN_PROBABILITY = 0.05       # chance to spawn a node
     KILL_PROBABILITY = 0.05        # chance to kill a local node
     POST_CHAOS_WAIT = 60           # seconds to let network settle

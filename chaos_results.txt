@@ -312,3 +312,81 @@ TRANSFER_INTERVAL = 10
 SPAWN_PROBABILITY = 0.05
 KILL_PROBABILITY = 0.05
 POST_CHAOS_WAIT = 60
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 88
+
+Blockchain heights observed: 6
+  Height 13: 2 node(s)
+  Height 14: 1 node(s)
+  Height 15: 24 node(s)
+  Height 16: 1 node(s)
+  Height 18: 4 node(s)
+  Height 20: 56 node(s)
+
+Last block hashes observed: 11
+  Hash 84285022… : 10 node(s)
+  Hash 31ee4726… : 26 node(s)
+  Hash 59ef1b2d… : 30 node(s)
+  Hash 1bc9ee35… : 1 node(s)
+  Hash e7f8bc4f… : 12 node(s)
+  Hash 4092c751… : 1 node(s)
+  Hash 6b161ee0… : 1 node(s)
+  Hash 67be9b5d… : 3 node(s)
+  Hash 8d4b0917… : 2 node(s)
+  Hash 07ae1355… : 1 node(s)
+  Hash 9d011587… : 1 node(s)
+
+Distinct balance states: 10
+
+State #1 observed on 10 node(s):
+  Alice: 150
+  Bob: 481
+  Eve: 347
+
+State #2 observed on 26 node(s):
+  Alice: 183
+  Bob: -18
+  Eve: -65
+
+State #3 observed on 30 node(s):
+  Alice: 176
+  Bob: -11
+  Eve: -65
+
+State #4 observed on 1 node(s):
+  Alice: 156
+  Bob: 494
+  Eve: 328
+
+State #5 observed on 13 node(s):
+  Alice: 157
+  Bob: -7
+  Eve: -50
+
+State #6 observed on 1 node(s):
+  Alice: 153
+  Bob: -3
+  Eve: -50
+
+State #7 observed on 3 node(s):
+  Alice: 171
+  Bob: -11
+  Eve: -60
+
+State #8 observed on 2 node(s):
+  Alice: 145
+  Bob: 5
+  Eve: -50
+
+State #9 observed on 1 node(s):
+  Alice: 171
+  Bob: -21
+  Eve: -50
+
+State #10 observed on 1 node(s):
+  Alice: 164
+  Bob: 501
+  Eve: 313
+
+========================================
+
