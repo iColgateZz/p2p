@@ -410,5 +410,30 @@ Lisaks võib ka testi ajal käsitsi käima panna mõned teised sõlmed ja tappa 
 
 Selle testi puhul näitame, et võrk toimib nii erinevate portide kui ka _ip_-dega olevatel masinatel.
 
-Kuna selles testis osaleb vähe sõlmi, on täitsa võimalik kasutada võrgu visualiseerimist. Sellest on täpsemalt kirjas võrgu topoloogia osas.
+Kuna selles testis osaleb suhteliselt vähe sõlmi, on täitsa võimalik kasutada võrgu visualiseerimist. Sellest on täpsemalt kirjas võrgu topoloogia osas.
 
+Kõik konteinerid saab korraga tappa käsuga `docker compose down`
+
+### Kolmas katse
+
+#### Eeldused
+
+Selles katsel on samad eeldused nagu teisel katsel.
+
+#### Test ise
+
+Pange _Docker_-i konteinerid käima jooksutades `docker compose up -d`. Siis jooksutage juurkaustas olevat `chaos_test.py` faili.
+
+Selles failis on olemas mõned konstandid, millega saab testi käitumist muuta. Põhimõtteliselt lisaks _Docker_-is olevatele konteineritele tekitatakse juurde veel `NUM_LOCAL_NODES` lokaaalset sõlme. 
+
+Testi põhiosa kestab `CHAOS_DURATION` sekundit ning iga `TRANSFER_INTERVAL` sekundi tagant üks sõlm teeb suvalist ülekannet. Sama intervalli tagant teatud tõenäosusega võrku lisatakse uus sõlm või eemaldatakse mingi olemasolev.
+
+Testi lõpus sõlmedelt korjatakse statistikat ning tehakse kokkuvõte.
+
+#### Tulemused
+
+Mõned katsetulemused on välja toodud failis `chaos_results.txt`
+
+Üldiselt nende tulemuste põhjal tundub, et kui sõlmede arv on väike (50-70) ning koormus ei ole eriti suur (tehing iga 2-5 sekundi tagant), siis võrk töötab üsna stabiilselt. Kui tõsta sõlmede arvu (80-90) või suurendada koormust (1 tehing sekundis), siis tekib võrgu killustumine ning erinevad sõlmed hoiavad väga erinevaid andmeid. Võrk on näidanud stabiilset tööd nii kui sõlmede lisamine/tapmine oli lubatud kui ka siis, kui seda ei tehtud.
+
+Selline tulemus on oodatud, kuna sõlmedel puuduvad konsensus algoritm ning _fork_-ide lahendamine.
