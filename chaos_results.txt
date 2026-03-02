@@ -267,3 +267,48 @@ State #31 observed on 1 node(s):
   Eve: 98
 
 ========================================
+
+NUM_LOCAL_NODES = 50
+CHAOS_DURATION = 10 * 60
+TRANSFER_INTERVAL = 5
+SPAWN_PROBABILITY = 0.05
+KILL_PROBABILITY = 0.05
+POST_CHAOS_WAIT = 60
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 61
+
+Blockchain heights observed: 3
+  Height 21: 1 node(s)
+  Height 31: 10 node(s)
+  Height 45: 50 node(s)
+
+Last block hashes observed: 3
+  Hash f4b540e3… : 10 node(s)
+  Hash 1daa1b82… : 1 node(s)
+  Hash be64d8b9… : 50 node(s)
+
+Distinct balance states: 3
+
+State #1 observed on 10 node(s):
+  Alice: 69
+  Bob: 514
+  Eve: 395
+
+State #2 observed on 1 node(s):
+  Alice: 67
+  Bob: 528
+  Eve: 383
+
+State #3 observed on 50 node(s):
+  Alice: 74
+  Bob: 15
+  Eve: 11
+
+========================================
+
+NUM_LOCAL_NODES = 80
+CHAOS_DURATION = 10 * 60
+TRANSFER_INTERVAL = 10
+SPAWN_PROBABILITY = 0.05
+KILL_PROBABILITY = 0.05
+POST_CHAOS_WAIT = 60
