@@ -390,3 +390,32 @@ State #10 observed on 1 node(s):
 
 ========================================
 
+NUM_LOCAL_NODES = 60
+CHAOS_DURATION = 10 * 60
+TRANSFER_INTERVAL = 5
+SPAWN_PROBABILITY = 0
+KILL_PROBABILITY = 0
+POST_CHAOS_WAIT = 60
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 70
+
+Blockchain heights observed: 1
+  Height 15: 70 node(s)
+
+Last block hashes observed: 2
+  Hash 049683c0… : 10 node(s)
+  Hash 2333ccff… : 60 node(s)
+
+Distinct balance states: 2
+
+State #1 observed on 10 node(s):
+  Alice: 105
+  Bob: 544
+  Eve: 329
+
+State #2 observed on 60 node(s):
+  Alice: 95
+  Bob: 55
+  Eve: -50
+
+========================================
