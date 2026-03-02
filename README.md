@@ -181,7 +181,7 @@ curl http://127.0.0.1:5000/hashes
 ## 5. `GET /hashes/{hash}`
 
 Tagastab kõik plokkide _hash_-id, mis tulevad pärast antud _hash_-i.
-Kasutatakse plokiahela sünkroniseerimiseks.
+Kasutatakse plokiahelas puuduvate plokide tuvastamiseks.
 
 ### Päring
 
@@ -204,7 +204,7 @@ curl http://127.0.0.1:5000/hashes/9f12de...
 
 ## 6. `GET /blocks/{hash}`
 
-Tagastab konkreetse ploki antud _hash_-i alusel.
+Tagastab konkreetse ploki antud _hash_-i põhjal.
 
 ### Päring
 
