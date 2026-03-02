@@ -379,6 +379,8 @@ Tegime erinevad katsed. Palju testisime käsitsi, aga on olemas ka mõned automa
 
 Katsete tegemiseks eeldatakse, et Teie kasutate kas mingit _Linux_-i _distribution_-it või _MacOS_-i.
 
+---
+
 ### Esimene katse
 
 Jooksutage fail `test/test.sh`. See loob 100 sõlme ühe _ip_ aadressiga (127.0.0.1) ja erinevate _port_-idega (5000 - 5099). Siis jooksutage `python3 test/test.py`. See paneb käima testi, mis kestab paar minutit.
@@ -389,6 +391,7 @@ Selle testiga näitame, et põhimõtteliselt meie võrk töötab, sõlmed suhtle
 
 Loodud sõlmede tapmiseks võib kasutada `killall p2p` käsku.
 
+---
 
 ### Teine katse
 
@@ -414,6 +417,8 @@ Kuna selles testis osaleb suhteliselt vähe sõlmi, on täitsa võimalik kasutad
 
 Kõik konteinerid saab korraga tappa käsuga `docker compose down`
 
+---
+
 ### Kolmas katse
 
 #### Eeldused
@@ -437,3 +442,5 @@ Mõned katsetulemused on välja toodud failis `chaos_results.txt`
 Üldiselt nende tulemuste põhjal tundub, et kui sõlmede arv on väike (50-70) ning koormus ei ole eriti suur (tehing iga 2-5 sekundi tagant), siis võrk töötab üsna stabiilselt. Kui tõsta sõlmede arvu (80-90) või suurendada koormust (1 tehing sekundis), siis tekib võrgu killustumine ning erinevad sõlmed hoiavad väga erinevaid andmeid. Võrk on näidanud stabiilset tööd nii kui sõlmede lisamine/tapmine oli lubatud kui ka siis, kui seda ei tehtud.
 
 Selline tulemus on oodatud, kuna sõlmedel puuduvad konsensus algoritm ning _fork_-ide lahendamine.
+
+---
