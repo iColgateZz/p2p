@@ -28,3 +28,242 @@ State #2 observed on 48 node(s):
   Eve: -53
 
 ========================================
+
+NUM_LOCAL_NODES = 75
+CHAOS_DURATION = 10 * 60
+TRANSFER_INTERVAL = 2
+SPAWN_PROBABILITY = 0.05
+KILL_PROBABILITY = 0.05
+POST_CHAOS_WAIT = 60
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 84
+
+Blockchain heights observed: 16
+  Height 15: 10 node(s)
+  Height 16: 6 node(s)
+  Height 17: 12 node(s)
+  Height 18: 6 node(s)
+  Height 19: 3 node(s)
+  Height 20: 9 node(s)
+  Height 21: 8 node(s)
+  Height 22: 1 node(s)
+  Height 24: 2 node(s)
+  Height 33: 1 node(s)
+  Height 38: 1 node(s)
+  Height 39: 4 node(s)
+  Height 40: 7 node(s)
+  Height 42: 1 node(s)
+  Height 48: 3 node(s)
+  Height 53: 10 node(s)
+
+Last block hashes observed: 51
+  Hash 3e37b0c9… : 8 node(s)
+  Hash 0aa3e165… : 2 node(s)
+  Hash 74fa8ff3… : 7 node(s)
+  Hash 92fdd5e3… : 4 node(s)
+  Hash 0b096be5… : 1 node(s)
+  Hash a1cc192d… : 2 node(s)
+  Hash f482bda6… : 1 node(s)
+  Hash 0add7f4f… : 4 node(s)
+  Hash 4b33e8d4… : 3 node(s)
+  Hash db2d761a… : 1 node(s)
+  Hash 313d9d81… : 3 node(s)
+  Hash fa1c17d8… : 1 node(s)
+  Hash faceca12… : 1 node(s)
+  Hash 911594b9… : 1 node(s)
+  Hash 44814404… : 2 node(s)
+  Hash 85fb50ad… : 1 node(s)
+  Hash ca0ad577… : 1 node(s)
+  Hash e3c09554… : 1 node(s)
+  Hash dd8fdd4a… : 1 node(s)
+  Hash 64456120… : 1 node(s)
+  Hash b0b60b4b… : 4 node(s)
+  Hash 7bacfe74… : 1 node(s)
+  Hash 497c41de… : 1 node(s)
+  Hash b99d60b7… : 1 node(s)
+  Hash 50b7c36f… : 2 node(s)
+  Hash fedd10dc… : 1 node(s)
+  Hash f316c8fe… : 1 node(s)
+  Hash 0f95e043… : 1 node(s)
+  Hash dd643fb7… : 1 node(s)
+  Hash e7636995… : 1 node(s)
+  Hash 293a3099… : 1 node(s)
+  Hash d6896550… : 1 node(s)
+  Hash 87e47440… : 1 node(s)
+  Hash 8e46cb3f… : 1 node(s)
+  Hash e56b419e… : 1 node(s)
+  Hash c85f8ac3… : 1 node(s)
+  Hash 1947fac4… : 1 node(s)
+  Hash 6a7219bb… : 1 node(s)
+  Hash 149fb99b… : 1 node(s)
+  Hash 3898a1b0… : 1 node(s)
+  Hash a307803c… : 1 node(s)
+  Hash a12bd68b… : 1 node(s)
+  Hash 29509aca… : 1 node(s)
+  Hash 0251a79f… : 2 node(s)
+  Hash 9d9404fb… : 1 node(s)
+  Hash 6df96489… : 2 node(s)
+  Hash 283da64a… : 1 node(s)
+  Hash 42dcddf7… : 2 node(s)
+  Hash 3fcf94b0… : 1 node(s)
+  Hash 5b804958… : 1 node(s)
+  Hash dee8a1bc… : 1 node(s)
+
+Distinct balance states: 31
+
+State #1 observed on 8 node(s):
+  Alice: 180
+  Bob: 409
+  Eve: 389
+
+State #2 observed on 2 node(s):
+  Alice: 188
+  Bob: 421
+  Eve: 369
+
+State #3 observed on 7 node(s):
+  Alice: 245
+  Bob: -252
+  Eve: 107
+
+State #4 observed on 5 node(s):
+  Alice: 189
+  Bob: -153
+  Eve: 64
+
+State #5 observed on 8 node(s):
+  Alice: 189
+  Bob: -150
+  Eve: 61
+
+State #6 observed on 11 node(s):
+  Alice: 187
+  Bob: -153
+  Eve: 66
+
+State #7 observed on 8 node(s):
+  Alice: 187
+  Bob: -147
+  Eve: 60
+
+State #8 observed on 1 node(s):
+  Alice: 198
+  Bob: -160
+  Eve: 62
+
+State #9 observed on 2 node(s):
+  Alice: 201
+  Bob: -171
+  Eve: 70
+
+State #10 observed on 2 node(s):
+  Alice: 196
+  Bob: -157
+  Eve: 61
+
+State #11 observed on 2 node(s):
+  Alice: 194
+  Bob: -169
+  Eve: 75
+
+State #12 observed on 1 node(s):
+  Alice: 198
+  Bob: -154
+  Eve: 56
+
+State #13 observed on 1 node(s):
+  Alice: 203
+  Bob: -178
+  Eve: 75
+
+State #14 observed on 2 node(s):
+  Alice: 197
+  Bob: -160
+  Eve: 63
+
+State #15 observed on 2 node(s):
+  Alice: 184
+  Bob: -159
+  Eve: 75
+
+State #16 observed on 2 node(s):
+  Alice: 196
+  Bob: -171
+  Eve: 75
+
+State #17 observed on 1 node(s):
+  Alice: 204
+  Bob: -166
+  Eve: 62
+
+State #18 observed on 1 node(s):
+  Alice: 223
+  Bob: -192
+  Eve: 69
+
+State #19 observed on 2 node(s):
+  Alice: 204
+  Bob: -160
+  Eve: 56
+
+State #20 observed on 1 node(s):
+  Alice: 204
+  Bob: -170
+  Eve: 66
+
+State #21 observed on 2 node(s):
+  Alice: 184
+  Bob: -144
+  Eve: 60
+
+State #22 observed on 1 node(s):
+  Alice: 189
+  Bob: -159
+  Eve: 70
+
+State #23 observed on 1 node(s):
+  Alice: 212
+  Bob: -175
+  Eve: 63
+
+State #24 observed on 2 node(s):
+  Alice: 221
+  Bob: 378
+  Eve: 379
+
+State #25 observed on 1 node(s):
+  Alice: 223
+  Bob: 383
+  Eve: 372
+
+State #26 observed on 2 node(s):
+  Alice: 238
+  Bob: -262
+  Eve: 124
+
+State #27 observed on 1 node(s):
+  Alice: 235
+  Bob: 370
+  Eve: 373
+
+State #28 observed on 2 node(s):
+  Alice: 237
+  Bob: -261
+  Eve: 124
+
+State #29 observed on 1 node(s):
+  Alice: 215
+  Bob: -184
+  Eve: 69
+
+State #30 observed on 1 node(s):
+  Alice: 220
+  Bob: -200
+  Eve: 80
+
+State #31 observed on 1 node(s):
+  Alice: 229
+  Bob: -227
+  Eve: 98
+
+========================================
