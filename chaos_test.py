@@ -94,10 +94,10 @@ def main():
 
     print(f"[INFO] Chaos simulation begins")
     CHAOS_DURATION = 10 * 60        # minutes
-    TRANSFER_INTERVAL = 1          # seconds between actions
+    TRANSFER_INTERVAL = 0.2          # seconds between actions
     SPAWN_PROBABILITY = 0.05       # chance to spawn a node
     KILL_PROBABILITY = 0.05        # chance to kill a local node
-    POST_CHAOS_WAIT = 180           # seconds to let network settlex
+    POST_CHAOS_WAIT = 300           # seconds to let network settlex
 
     start_time = time.time()
     while time.time() - start_time < CHAOS_DURATION:

@@ -137,3 +137,81 @@ State #1 observed on 50 node(s): <-- EXPECTED
 Nodes matching expected state: 50/50
 
 ========================================
+
+NUM_LOCAL_NODES     : 50
+CHAOS_DURATION      : 600
+TRANSFER_INTERVAL   : 0.5
+SPAWN_PROBABILITY   : 0.05
+KILL_PROBABILITY    : 0.05
+POST_CHAOS_WAIT     : 180
+
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 55
+Successful transfers   : 1173
+Failed transfers       : 0
+
+Expected final balances (source of truth):
+  Alice: 95
+  Bob: 481
+  Eve: 402
+
+Blockchain heights observed: 1
+  Height 33: 55 node(s)
+
+Last block hashes observed: 3
+  Hash 00000060… : 53 node(s)
+  Hash 00000da3… : 1 node(s)
+  Hash 00000940… : 1 node(s)
+
+Distinct balance states: 1
+
+State #1 observed on 55 node(s):
+  Alice: 103
+  Bob: 494
+  Eve: 381
+
+Nodes matching expected state: 0/55
+
+========================================
+
+NUM_LOCAL_NODES     : 50
+CHAOS_DURATION      : 600
+TRANSFER_INTERVAL   : 0.2
+SPAWN_PROBABILITY   : 0.05
+KILL_PROBABILITY    : 0.05
+POST_CHAOS_WAIT     : 300
+
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 44
+Successful transfers   : 2898
+Failed transfers       : 0
+
+Expected final balances (source of truth):
+  Alice: 102
+  Bob: 555
+  Eve: 321
+
+Blockchain heights observed: 2
+  Height 11: 1 node(s)
+  Height 12: 43 node(s)
+
+Last block hashes observed: 3
+  Hash 00000c4a… : 40 node(s)
+  Hash 00000f3e… : 3 node(s)
+  Hash 000007ce… : 1 node(s)
+
+Distinct balance states: 2
+
+State #1 observed on 43 node(s):
+  Alice: 97
+  Bob: 550
+  Eve: 331
+
+State #2 observed on 1 node(s):
+  Alice: 132
+  Bob: 595
+  Eve: 251
+
+Nodes matching expected state: 0/44
+
+========================================
