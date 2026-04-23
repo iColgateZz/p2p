@@ -39,3 +39,37 @@ State #2 observed on 1 node(s):
 Nodes matching expected state: 8/9
 
 ========================================
+
+NUM_LOCAL_NODES = 10
+CHAOS_DURATION = 10 * 60 
+TRANSFER_INTERVAL = 1   
+SPAWN_PROBABILITY = 0.05
+KILL_PROBABILITY = 0.05 
+POST_CHAOS_WAIT = 180   
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 11
+Successful transfers   : 426
+Failed transfers       : 171
+
+Expected final balances (source of truth):
+  Alice: 118
+  Bob: 488
+  Eve: 372
+
+Blockchain heights observed: 1
+  Height 41: 11 node(s)
+
+Last block hashes observed: 1
+  Hash 00000cfd… : 11 node(s)
+
+Distinct balance states: 1
+
+State #1 observed on 11 node(s):
+  Alice: 118
+  Bob: 473
+  Eve: 367
+
+Nodes matching expected state: 0/11
+
+========================================
+pavelpavliv@Mac p2p % 

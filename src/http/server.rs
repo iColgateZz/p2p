@@ -70,7 +70,7 @@ pub fn start<H: HttpHandler>(addr: &str, handler: H) {
         }
     };
 
-    let pool = ThreadPool::new(4);
+    let pool = ThreadPool::new(10);
     let handler = Arc::new(handler);
 
     println!("[SERVER] Waiting for connections...\n");

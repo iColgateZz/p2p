@@ -93,7 +93,7 @@ def main():
     time.sleep(10)
 
     print(f"[INFO] Chaos simulation begins")
-    CHAOS_DURATION = 5 * 60        # minutes
+    CHAOS_DURATION = 10 * 60        # minutes
     TRANSFER_INTERVAL = 1          # seconds between actions
     SPAWN_PROBABILITY = 0.05       # chance to spawn a node
     KILL_PROBABILITY = 0.05        # chance to kill a local node
