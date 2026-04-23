@@ -225,7 +225,8 @@ curl http://127.0.0.1:5000/blocks/a3f1c9...
       "timestamp": 1710000000
     }
   ],
-  "timestamp": 1710000050
+  "timestamp": 1710000050,
+  "nonce": 1234
 }
 ```
 

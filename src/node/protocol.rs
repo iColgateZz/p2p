@@ -36,6 +36,7 @@ pub struct BlockDto {
     pub prev_hash: String,
     pub transactions: Vec<TransactionDto>,
     pub timestamp: u64,
+    pub nonce: u64,
 }
 
 impl From<&Block> for BlockDto {
@@ -45,6 +46,7 @@ impl From<&Block> for BlockDto {
             prev_hash: b.prev_hash.clone(),
             transactions: b.transactions.iter().map(|t| t.into()).collect(),
             timestamp: b.timestamp,
+            nonce: b.nonce,
         }
     }
 }
@@ -56,6 +58,7 @@ impl From<&BlockDto> for Block {
             prev_hash: dto.prev_hash.clone(),
             transactions: dto.transactions.iter().map(Into::into).collect(),
             timestamp: dto.timestamp,
+            nonce: dto.nonce,
         }
     }
 }

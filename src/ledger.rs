@@ -8,21 +8,57 @@ pub struct Block {
     pub prev_hash: String,
     pub transactions: Vec<Transaction>,
     pub timestamp: u64,
+    pub nonce: u64,
 }
+
+pub const MINING_COMPLEXITY: usize = 5;
 
 impl Block {
     pub fn new(prev_hash: String, transactions: Vec<Transaction>, timestamp: u64) -> Self {
-        let tx_hashes: String = transactions.iter().map(|t| t.hash.clone()).collect();
-
-        let input = format!("{}{}{}", prev_hash, tx_hashes, timestamp);
-        let hash = compute_hash(&input);
+        let (nonce, hash) = Self::mine(&prev_hash, &transactions, timestamp);
 
         Self {
             hash,
             prev_hash,
             transactions,
             timestamp,
+            nonce,
         }
+    }
+
+    pub fn mine(prev_hash: &str, transactions: &[Transaction], timestamp: u64) -> (u64, String) {
+        let mut nonce = 0;
+
+        loop {
+            let hash = Self::hash_input(prev_hash, transactions, timestamp, nonce);
+
+            if Self::has_valid_prefix(&hash) {
+                return (nonce, hash)
+            }
+
+            nonce += 1;
+        }
+    }
+
+    pub fn has_valid_prefix(hash: &str) -> bool {
+        hash.starts_with(&"0".repeat(MINING_COMPLEXITY))
+    }
+
+    pub fn hash_input(prev_hash: &str, transactions: &[Transaction], timestamp: u64, nonce: u64) -> String {
+        let tx_hashes: String = transactions.iter().map(|t| t.hash.as_str()).collect();
+        compute_hash(&format!("{}{}{}{}", prev_hash, tx_hashes, timestamp, nonce))
+    }
+
+    /// Check that the hash inside the block actually matches the content
+    pub fn is_valid(&self) -> bool {
+        let expected = Self::hash_input(
+            &self.prev_hash,
+            &self.transactions,
+            self.timestamp,
+            self.nonce,
+        );
+
+        self.hash == expected && Self::has_valid_prefix(&self.hash)
     }
 }
 
@@ -81,6 +117,10 @@ pub fn now() -> u64 {
 }
 
 pub fn add_block(block: &Block) -> bool {
+    if !block.is_valid() {
+        return false;
+    }
+
     let mut blocks = BLOCKS.lock().unwrap();
     if blocks.iter().any(|b| b.hash == block.hash) {
         return false;
@@ -123,9 +163,7 @@ pub fn add_transaction(transaction: &Transaction) -> bool {
 
 pub fn take_pending_transactions() -> Vec<Transaction> {
     let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
-    let txs = pending.clone();
-    pending.clear();
-    txs
+    std::mem::take(&mut *pending)
 }
 
 pub fn pending_txs_len() -> usize {
