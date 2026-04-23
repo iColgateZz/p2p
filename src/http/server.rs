@@ -70,7 +70,7 @@ pub fn start<H: HttpHandler>(addr: &str, handler: H) {
         }
     };
 
-    let pool = ThreadPool::new(10);
+    let pool = ThreadPool::new(32);
     let handler = Arc::new(handler);
 
     println!("[SERVER] Waiting for connections...\n");
@@ -211,23 +211,23 @@ impl HttpRequest {
             );
         }
 
-        if !body.is_empty() {
-            let len_str = headers
-                .get("content-length")
-                .ok_or(HttpParseError::MissingContentLength)?;
+        let expected_len = headers
+            .get("content-length")
+            .map(|s| s.parse::<usize>().map_err(|_| HttpParseError::InvalidContentLength))
+            .transpose()?
+            .unwrap_or(0);
 
-            let expected_len = len_str
-                .parse::<usize>()
-                .map_err(|_| HttpParseError::InvalidContentLength)?;
+        let actual_len = body.as_bytes().len();
 
-            let actual_len = body.as_bytes().len();
+        if actual_len < expected_len {
+            return Err(HttpParseError::Incomplete);
+        }
 
-            if actual_len != expected_len {
-                return Err(HttpParseError::ContentLengthMismatch {
-                    expected: expected_len,
-                    actual: actual_len,
-                });
-            }
+        if actual_len > expected_len {
+            return Err(HttpParseError::ContentLengthMismatch {
+                expected: expected_len,
+                actual: actual_len,
+            });
         }
 
         Ok(HttpRequest {
