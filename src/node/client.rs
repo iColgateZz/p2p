@@ -1,4 +1,4 @@
-use crate::ledger::{self, Block};
+use crate::ledger::{self, AddBlockResult, Block};
 use crate::node::RUNTIME;
 use crate::node::protocol::{BlockDto, HashesDto, PeerDto, TransactionDto};
 use crate::node::route::Route;
@@ -62,16 +62,13 @@ pub async fn discover_peers() {
 
 pub async fn fetch_blocks_from_peers() {
     let peers = peers::select_random_peers();
-    let my_last_hash = ledger::last_block_hash();
     let client = http_client();
-    let route = Route::GetHashesAfter(my_last_hash);
     let mut set = JoinSet::new();
 
     for peer in peers {
-        let url = peer.to_url(&route.to_path());
-
         set.spawn(async move {
-            let Ok(resp) = client.get(&url).send().await else {
+            let hashes_url = peer.to_url(&Route::GetHashes.to_path());
+            let Ok(resp) = client.get(&hashes_url).send().await else {
                 return;
             };
 
@@ -79,17 +76,31 @@ pub async fn fetch_blocks_from_peers() {
                 return;
             };
 
-            //TODO: actually one peer should be enough to fetch all blocks,
-            //      no need to ask other peers.
-            //TODO: optimization - ask many peers simultaneously about
-            //      different missing blocks and enqueue them
-            for hash in data.hashes {
-                fetch_block(&peer, &hash).await;
-            }
+            sync_with_peer_chain(&peer, data.hashes).await;
         });
     }
 
     while set.join_next().await.is_some() {}
+}
+
+async fn sync_with_peer_chain(peer: &Peer, peer_hashes: Vec<String>) {
+    let local_hashes = ledger::get_all_block_hashes();
+
+    if peer_hashes.len() <= local_hashes.len() {
+        return;
+    }
+
+    let mut common_prefix_len = 0usize;
+    while common_prefix_len < local_hashes.len()
+        && common_prefix_len < peer_hashes.len()
+        && local_hashes[common_prefix_len] == peer_hashes[common_prefix_len]
+    {
+        common_prefix_len += 1;
+    }
+
+    for hash in peer_hashes.into_iter().skip(common_prefix_len) {
+        fetch_block(peer, &hash).await;
+    }
 }
 
 async fn fetch_block(peer: &Peer, hash: &str) {
@@ -174,13 +185,13 @@ pub async fn peer_discovery_loop() {
 pub async fn block_sync_loop() {
     loop {
         fetch_blocks_from_peers().await;
-        sleep(Duration::from_secs(15)).await;
+        sleep(Duration::from_secs(30)).await;
     }
 }
 
 pub async fn block_creation_loop() {
     loop {
-        sleep(Duration::from_secs(45)).await;
+        sleep(Duration::from_secs(60)).await;
 
         let pending = ledger::take_pending_transactions();
         if pending.is_empty() {
@@ -191,8 +202,9 @@ pub async fn block_creation_loop() {
         let timestamp = ledger::now();
         let block = Block::new(prev_hash, pending, timestamp);
 
-        ledger::add_block(&block);
-        broadcast_block(BlockDto::from(&block));
+        if matches!(ledger::add_block(&block), AddBlockResult::Added) {
+            broadcast_block(BlockDto::from(&block));
+        }
     }
 }
 

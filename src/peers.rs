@@ -86,5 +86,5 @@ pub fn select_random_peers() -> Vec<Peer> {
 
     let mut peers: Vec<Peer> = peers.iter().map(|(p, _)| p.clone()).collect();
     peers.shuffle(&mut rng);
-    peers.into_iter().take(100).collect()
+    peers.into_iter().take(10).collect()
 }

@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use sha2::{Digest, Sha256};
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
 
 #[derive(Debug, Clone)]
@@ -28,9 +29,10 @@ impl Block {
 
     pub fn mine(prev_hash: &str, transactions: &[Transaction], timestamp: u64) -> (u64, String) {
         let mut nonce = 0;
+        let tx_hashes: String = transactions.iter().map(|t| t.hash.as_str()).collect();
 
         loop {
-            let hash = Self::hash_input(prev_hash, transactions, timestamp, nonce);
+            let hash = compute_hash(&format!("{}{}{}{}", prev_hash, tx_hashes, timestamp, nonce));
 
             if Self::has_valid_prefix(&hash) {
                 return (nonce, hash)
@@ -44,19 +46,10 @@ impl Block {
         hash.starts_with(&"0".repeat(MINING_COMPLEXITY))
     }
 
-    pub fn hash_input(prev_hash: &str, transactions: &[Transaction], timestamp: u64, nonce: u64) -> String {
-        let tx_hashes: String = transactions.iter().map(|t| t.hash.as_str()).collect();
-        compute_hash(&format!("{}{}{}{}", prev_hash, tx_hashes, timestamp, nonce))
-    }
-
     /// Check that the hash inside the block actually matches the content
     pub fn is_valid(&self) -> bool {
-        let expected = Self::hash_input(
-            &self.prev_hash,
-            &self.transactions,
-            self.timestamp,
-            self.nonce,
-        );
+        let tx_hashes: String = self.transactions.iter().map(|t| t.hash.as_str()).collect();
+        let expected = compute_hash(&format!("{}{}{}{}", self.prev_hash, tx_hashes, self.timestamp, self.nonce));
 
         self.hash == expected && Self::has_valid_prefix(&self.hash)
     }
@@ -87,9 +80,31 @@ impl Transaction {
     }
 }
 
+#[derive(Debug, Clone)]
+struct StoredBlock {
+    block: Block,
+    height: usize,
+}
+
+#[derive(Debug, Default)]
+struct LedgerState {
+    blocks_by_hash: HashMap<String, StoredBlock>,
+    main_chain: Vec<Block>,
+    best_tip: String,
+}
+
+#[derive(Debug)]
+pub enum AddBlockResult {
+    Added,
+    StoredAsOrphan,
+    Duplicate,
+    Invalid,
+}
+
 lazy_static! {
-    static ref BLOCKS: Mutex<Vec<Block>> = Mutex::new(Vec::new());
+    static ref LEDGER: Mutex<LedgerState> = Mutex::new(LedgerState::default());
     static ref PENDING_TRANSACTIONS: Mutex<Vec<Transaction>> = Mutex::new(Vec::new());
+    static ref ORPHAN_BLOCKS: Mutex<HashMap<String, Vec<Block>>> = Mutex::new(HashMap::new());
 }
 
 pub fn init_genesis_block() {
@@ -98,8 +113,17 @@ pub fn init_genesis_block() {
     let tx = Transaction::new("Alice=100".to_string(), timestamp);
     let block = Block::new(String::new(), vec![tx], timestamp);
 
-    let mut blocks = BLOCKS.lock().unwrap();
-    blocks.push(block);
+    let mut ledger = LEDGER.lock().unwrap();
+    let height = 1;
+    ledger.blocks_by_hash.insert(
+        block.hash.clone(),
+        StoredBlock {
+            block: block.clone(),
+            height,
+        },
+    );
+    ledger.best_tip = block.hash.clone();
+    ledger.main_chain = vec![block];
 }
 
 pub fn compute_hash(data: &str) -> String {
@@ -116,26 +140,124 @@ pub fn now() -> u64 {
         .as_secs()
 }
 
-pub fn add_block(block: &Block) -> bool {
+pub fn add_block(block: &Block) -> AddBlockResult {
     if !block.is_valid() {
-        return false;
+        return AddBlockResult::Invalid;
     }
 
-    let mut blocks = BLOCKS.lock().unwrap();
-    if blocks.iter().any(|b| b.hash == block.hash) {
-        return false;
+    {
+        let ledger = LEDGER.lock().unwrap();
+        if ledger.blocks_by_hash.contains_key(&block.hash) {
+            return AddBlockResult::Duplicate;
+        }
     }
 
-    // we always have at least the genesis block
-    let last_block = blocks.last().unwrap();
-    if last_block.hash != block.prev_hash {
-        return false;
+    if !block.prev_hash.is_empty() {
+        let parent_known = {
+            let ledger = LEDGER.lock().unwrap();
+            ledger.blocks_by_hash.contains_key(&block.prev_hash)
+        };
+
+        if !parent_known {
+            let mut orphans = ORPHAN_BLOCKS.lock().unwrap();
+            let entry = orphans.entry(block.prev_hash.clone()).or_default();
+            if entry.iter().any(|b| b.hash == block.hash) {
+                return AddBlockResult::Duplicate;
+            }
+            entry.push(block.clone());
+            println!(
+                "[LEDGER] Stored orphan block {} waiting for {}",
+                block.hash, block.prev_hash
+            );
+            return AddBlockResult::StoredAsOrphan;
+        }
     }
 
-    blocks.push(block.clone());
-    drop(blocks); // release lock early
+    insert_block_and_update_best_chain(block.clone());
+    process_orphans(block.hash.clone());
+    remove_confirmed_pending_transactions(block);
 
-    // Remove confirmed transactions from pending
+    println!("[LEDGER] Added block: {}", block.hash);
+    AddBlockResult::Added
+}
+
+fn insert_block_and_update_best_chain(block: Block) {
+    let mut ledger = LEDGER.lock().unwrap();
+
+    if ledger.blocks_by_hash.contains_key(&block.hash) {
+        return;
+    }
+
+    let height = if block.prev_hash.is_empty() {
+        1
+    } else {
+        match ledger.blocks_by_hash.get(&block.prev_hash) {
+            Some(parent) => parent.height + 1,
+            None => return,
+        }
+    };
+
+    ledger.blocks_by_hash.insert(
+        block.hash.clone(),
+        StoredBlock {
+            block: block.clone(),
+            height,
+        },
+    );
+
+    let current_best_height = ledger
+        .blocks_by_hash
+        .get(&ledger.best_tip)
+        .map(|b| b.height)
+        .unwrap_or(0);
+
+    if height > current_best_height {
+        ledger.best_tip = block.hash.clone();
+        rebuild_main_chain(&mut ledger);
+    }
+}
+
+fn rebuild_main_chain(ledger: &mut LedgerState) {
+    let mut chain = Vec::new();
+    let mut cursor = ledger.best_tip.clone();
+
+    while !cursor.is_empty() {
+        let Some(stored) = ledger.blocks_by_hash.get(&cursor) else {
+            break;
+        };
+
+        chain.push(stored.block.clone());
+        cursor = stored.block.prev_hash.clone();
+    }
+
+    chain.reverse();
+    ledger.main_chain = chain;
+}
+
+fn process_orphans(starting_parent_hash: String) {
+    let mut queue = vec![starting_parent_hash];
+    let mut seen_parents = HashSet::new();
+
+    while let Some(parent_hash) = queue.pop() {
+        if !seen_parents.insert(parent_hash.clone()) {
+            continue;
+        }
+
+        let children = {
+            let mut orphans = ORPHAN_BLOCKS.lock().unwrap();
+            orphans.remove(&parent_hash).unwrap_or_default()
+        };
+
+        for child in children {
+            let child_hash = child.hash.clone();
+            remove_confirmed_pending_transactions(&child);
+            insert_block_and_update_best_chain(child);
+            queue.push(child_hash);
+        }
+    }
+}
+
+fn remove_confirmed_pending_transactions(block: &Block) {
     let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
     pending.retain(|pending_tx| {
         !block
@@ -143,9 +265,6 @@ pub fn add_block(block: &Block) -> bool {
             .iter()
             .any(|tx| tx.hash == pending_tx.hash)
     });
-
-    println!("[LEDGER] Added block: {}", block.hash);
-    true
 }
 
 pub fn add_transaction(transaction: &Transaction) -> bool {
@@ -172,48 +291,38 @@ pub fn pending_txs_len() -> usize {
 }
 
 pub fn last_block_hash() -> String {
-    let blocks = BLOCKS.lock().unwrap();
-    blocks.last().unwrap().hash.clone()
+    let ledger = LEDGER.lock().unwrap();
+    ledger.best_tip.clone()
 }
 
 pub fn get_block(hash: &str) -> Option<Block> {
-    let blocks = BLOCKS.lock().unwrap();
-    for b in blocks.iter() {
-        if b.hash == hash {
-            return Some(b.clone());
-        }
-    }
-
-    None
+    let ledger = LEDGER.lock().unwrap();
+    ledger.blocks_by_hash.get(hash).map(|b| b.block.clone())
 }
 
 pub fn with_blocks<R>(f: impl FnOnce(&[Block]) -> R) -> R {
-    let blocks = BLOCKS.lock().unwrap();
-    f(&blocks)
+    let ledger = LEDGER.lock().unwrap();
+    f(&ledger.main_chain)
 }
 
 pub fn chain_len() -> usize {
-    let blocks = BLOCKS.lock().unwrap();
-    blocks.len()
+    let ledger = LEDGER.lock().unwrap();
+    ledger.main_chain.len()
 }
 
 pub fn get_all_block_hashes() -> Vec<String> {
-    let mut v = Vec::new();
-
-    for b in BLOCKS.lock().unwrap().iter() {
-        v.push(b.hash.clone());
-    }
-
-    v
+    let ledger = LEDGER.lock().unwrap();
+    ledger.main_chain.iter().map(|b| b.hash.clone()).collect()
 }
 
 pub fn get_block_hashes_after(start_hash: &str) -> Vec<String> {
-    let blocks = BLOCKS.lock().unwrap();
+    let ledger = LEDGER.lock().unwrap();
 
-    if let Some(pos) = blocks.iter().position(|b| b.hash == start_hash) {
-        blocks
+    if let Some(pos) = ledger.main_chain.iter().position(|b| b.hash == start_hash) {
+        ledger
+            .main_chain
             .iter()
-            .skip(pos + 1) // skip the matching hash
+            .skip(pos + 1)
             .map(|b| b.hash.clone())
             .collect()
     } else {

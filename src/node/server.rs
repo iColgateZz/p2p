@@ -1,5 +1,5 @@
 use crate::http::server::{HttpHandler, HttpRequest, HttpResult};
-use crate::ledger::{self, Block, Transaction};
+use crate::ledger::{self, AddBlockResult, Block, Transaction};
 use crate::node::protocol::*;
 use crate::node::transactions::{self, ParsedTx};
 use crate::node::{client, route::Route};
@@ -119,15 +119,20 @@ fn post_block(body: &str) -> HttpResult {
         }
     };
 
-    if ledger::add_block(&Block::from(&dto)) {
-        client::broadcast_block(dto);
-        HttpResult::created(&Message {
-            message: "Block accepted",
-        })
-    } else {
-        HttpResult::ok(&Message {
-            message: "Block already exists or its hash does not match the hash of the last block in the chain",
-        })
+    match ledger::add_block(&Block::from(&dto)) {
+        AddBlockResult::Added => {
+            client::broadcast_block(dto);
+            HttpResult::created(&Message {
+                message: "Block accepted",
+            })
+        }
+        AddBlockResult::StoredAsOrphan => HttpResult::created(&Message {
+            message: "Block stored as orphan",
+        }),
+        AddBlockResult::Duplicate => HttpResult::ok(&Message {
+            message: "Block already known",
+        }),
+        AddBlockResult::Invalid => HttpResult::bad_req(),
     }
 }
 

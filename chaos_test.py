@@ -4,6 +4,7 @@ import time
 import random
 from collections import defaultdict
 
+
 class Node:
     def __init__(self, addr):
         self.base_url = "http://" + addr
@@ -16,14 +17,14 @@ class Node:
             f"{self.base_url}/users",
             json={"name": name, "balance": balance},
             timeout=2
-        )
+        ).raise_for_status()
 
     def transfer(self, xfrom, to, amount):
         requests.post(
             f"{self.base_url}/transfers",
             json={"from": xfrom, "to": to, "sum": amount},
             timeout=2
-        )
+        ).raise_for_status()
 
     def users(self):
         return requests.get(f"{self.base_url}/users", timeout=2).json()
@@ -46,66 +47,81 @@ class LocalNode:
     def stop(self):
         self.proc.kill()
 
+
 def main():
-    docker_nodes = [Node(f"172.20.0.{i}:5000") for i in range(2, 12)]
-    print(f"[INFO] Tracking {len(docker_nodes)} docker nodes")
+    bootstrap = LocalNode(5000)
+    bootstrap.start()
+    print("[INFO] Using localhost:5000 as bootstrap node (never killed)")
 
     local_nodes = []
-    NUM_LOCAL_NODES = 80
-    base_port = 5000
+    NUM_LOCAL_NODES = 10
+    base_port = 5001
 
     print(f"[INFO] Trying to spawn {NUM_LOCAL_NODES} local nodes")
     for _ in range(NUM_LOCAL_NODES):
         ln = LocalNode(base_port)
         ln.start()
-        
         local_nodes.append(ln)
         base_port += 1
 
     print(f"[INFO] Spawned {len(local_nodes)} local nodes")
 
-    print(f"[INFO] Initializing network starting state")
-    # By default, there is Alice with 100 coins
-    bootstrap = docker_nodes[0]
-    bootstrap.create_user("Bob", 500)
-    bootstrap.create_user("Eve", 378)
-    
-    users = ["Alice", "Bob", "Eve"]
-    
+    print("[INFO] Initializing network starting state")
+    time.sleep(5)
+
+    expected_balances = {
+        "Alice": 100,
+    }
+
+    try:
+        bootstrap.node.create_user("Bob", 500)
+        expected_balances["Bob"] = 500
+    except Exception as e:
+        print(f"[WARN] Failed to create Bob: {e}")
+
+    try:
+        bootstrap.node.create_user("Eve", 378)
+        expected_balances["Eve"] = 378
+    except Exception as e:
+        print(f"[WARN] Failed to create Eve: {e}")
+
+    users = list(expected_balances.keys())
+    successful_transfers = 0
+    failed_transfers = 0
+
     print("[INFO] Waiting for initial propagation")
     time.sleep(10)
 
     print(f"[INFO] Chaos simulation begins")
-    CHAOS_DURATION = 10 * 60        # minutes
-    TRANSFER_INTERVAL = 10          # seconds between actions
+    CHAOS_DURATION = 5 * 60        # minutes
+    TRANSFER_INTERVAL = 0.5          # seconds between actions
     SPAWN_PROBABILITY = 0.05       # chance to spawn a node
     KILL_PROBABILITY = 0.05        # chance to kill a local node
-    POST_CHAOS_WAIT = 60           # seconds to let network settle
+    POST_CHAOS_WAIT = 180           # seconds to let network settle
 
     start_time = time.time()
     while time.time() - start_time < CHAOS_DURATION:
-        # Active nodes (docker + alive locals)
-        active_nodes = docker_nodes + [ln.node for ln in local_nodes]
+        active_nodes = [bootstrap.node] + [ln.node for ln in local_nodes]
 
-        # Random transfer
         sender = random.choice(active_nodes)
         xfrom, to = random.sample(users, 2)
         amount = random.randint(1, 10)
 
         try:
-            print(f"[CHAOS] {xfrom} sent {amount} to {to}")
             sender.transfer(xfrom, to, amount)
-        except Exception:
-            pass
+            expected_balances[xfrom] -= amount
+            expected_balances[to] += amount
+            successful_transfers += 1
+            print(f"[CHAOS] {xfrom} sent {amount} to {to}")
+        except Exception as e:
+            failed_transfers += 1
 
-        # Randomly kill a local node
         if local_nodes and random.random() < KILL_PROBABILITY:
             victim = random.choice(local_nodes)
             print(f"[CHAOS] Killing local node on port {victim.port}")
             victim.stop()
             local_nodes.remove(victim)
 
-        # Randomly spawn a new local node
         if random.random() < SPAWN_PROBABILITY:
             ln = LocalNode(base_port)
             ln.start()
@@ -116,17 +132,20 @@ def main():
         time.sleep(TRANSFER_INTERVAL)
 
     print("[INFO] Chaos phase ended")
-    
+
     print(f"[INFO] Waiting {POST_CHAOS_WAIT}s for network to stabilize")
     time.sleep(POST_CHAOS_WAIT)
-    
+
     print("[INFO] Collecting final state from all nodes")
-    all_nodes = docker_nodes + [ln.node for ln in local_nodes]
+    all_nodes = [bootstrap.node] + [ln.node for ln in local_nodes]
 
     chain_heights = defaultdict(int)
     last_hashes = defaultdict(int)
     balances_seen = defaultdict(int)
-    
+
+    expected_state = tuple(sorted(expected_balances.items()))
+    exact_match_nodes = 0
+
     for node in all_nodes:
         try:
             status = node.status()
@@ -136,19 +155,25 @@ def main():
             chain_heights[height] += 1
             last_hashes[last_hash] += 1
 
-            users_state = tuple(
-                sorted(
-                    (u["name"], u["balance"])
-                    for u in node.users()
-                )
-            )
+            users_state = tuple(sorted((u["name"], u["balance"]) for u in node.users()))
             balances_seen[users_state] += 1
+
+            if users_state == expected_state:
+                exact_match_nodes += 1
+
 
         except Exception:
             continue
-        
+
     print("\n========== CHAOS TEST RESULTS ==========")
     print(f"Nodes queried          : {len(all_nodes)}")
+    print(f"Successful transfers   : {successful_transfers}")
+    print(f"Failed transfers       : {failed_transfers}")
+
+    print("\nExpected final balances (source of truth):")
+    for name, balance in expected_state:
+        print(f"  {name}: {balance}")
+
     print(f"\nBlockchain heights observed: {len(chain_heights)}")
     for height, count in sorted(chain_heights.items()):
         print(f"  Height {height}: {count} node(s)")
@@ -159,12 +184,15 @@ def main():
 
     print(f"\nDistinct balance states: {len(balances_seen)}")
     for i, (state, count) in enumerate(balances_seen.items(), 1):
-        print(f"\nState #{i} observed on {count} node(s):")
+        verdict = " <-- EXPECTED" if state == expected_state else ""
+        print(f"\nState #{i} observed on {count} node(s):{verdict}")
         for name, balance in state:
             print(f"  {name}: {balance}")
 
+    print(f"\nNodes matching expected state: {exact_match_nodes}/{len(all_nodes)}")
     print("\n========================================")
 
+    bootstrap.stop()
     for ln in local_nodes:
         ln.stop()
 
