@@ -189,11 +189,44 @@ pub async fn block_sync_loop() {
     }
 }
 
+pub async fn sync_transactions_from_peers() {
+    let peers = peers::select_random_peers();
+    let client = http_client();
+    let mut set = JoinSet::new();
+
+    for peer in peers {
+        set.spawn(async move {
+            let url = peer.to_url(&Route::GetTransactions.to_path());
+            let Ok(resp) = client.get(&url).send().await else {
+                return;
+            };
+
+            let Ok(txs) = resp.json::<Vec<TransactionDto>>().await else {
+                return;
+            };
+
+            for tx in &txs {
+                let t = tx.into();
+                ledger::add_transaction(&t);
+            }
+        });
+    }
+
+    while set.join_next().await.is_some() {}
+}
+
+pub async fn transactions_sync_loop() {
+    loop {
+        sync_transactions_from_peers().await;
+        sleep(Duration::from_secs(15)).await;
+    }
+}
+
 pub async fn block_creation_loop() {
     loop {
         sleep(Duration::from_secs(60)).await;
 
-        let pending = ledger::take_pending_transactions();
+        let pending = ledger::get_transactions_for_mining(1000);
         if pending.is_empty() {
             continue;
         }

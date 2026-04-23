@@ -93,6 +93,11 @@ struct LedgerState {
     best_tip: String,
 }
 
+#[derive(Debug, Default)]
+struct TxPool {
+    known_by_hash: HashMap<String, Transaction>,
+}
+
 #[derive(Debug)]
 pub enum AddBlockResult {
     Added,
@@ -103,7 +108,7 @@ pub enum AddBlockResult {
 
 lazy_static! {
     static ref LEDGER: Mutex<LedgerState> = Mutex::new(LedgerState::default());
-    static ref PENDING_TRANSACTIONS: Mutex<Vec<Transaction>> = Mutex::new(Vec::new());
+    static ref TX_POOL: Mutex<TxPool> = Mutex::new(TxPool::default());
     static ref ORPHAN_BLOCKS: Mutex<HashMap<String, Vec<Block>>> = Mutex::new(HashMap::new());
 }
 
@@ -145,6 +150,8 @@ pub fn add_block(block: &Block) -> AddBlockResult {
         return AddBlockResult::Invalid;
     }
 
+    remember_block_transactions(block);
+
     {
         let ledger = LEDGER.lock().unwrap();
         if ledger.blocks_by_hash.contains_key(&block.hash) {
@@ -175,7 +182,6 @@ pub fn add_block(block: &Block) -> AddBlockResult {
 
     insert_block_and_update_best_chain(block.clone());
     process_orphans(block.hash.clone());
-    remove_confirmed_pending_transactions(block);
 
     println!("[LEDGER] Added block: {}", block.hash);
     AddBlockResult::Added
@@ -250,44 +256,67 @@ fn process_orphans(starting_parent_hash: String) {
 
         for child in children {
             let child_hash = child.hash.clone();
-            remove_confirmed_pending_transactions(&child);
             insert_block_and_update_best_chain(child);
             queue.push(child_hash);
         }
     }
 }
 
-fn remove_confirmed_pending_transactions(block: &Block) {
-    let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
-    pending.retain(|pending_tx| {
-        !block
-            .transactions
-            .iter()
-            .any(|tx| tx.hash == pending_tx.hash)
-    });
+fn confirmed_tx_hashes(ledger: &LedgerState) -> HashSet<String> {
+    ledger
+        .main_chain
+        .iter()
+        .flat_map(|block| block.transactions.iter().map(|tx| tx.hash.clone()))
+        .collect()
+}
+
+fn remember_block_transactions(block: &Block) {
+    let mut pool = TX_POOL.lock().unwrap();
+    for tx in &block.transactions {
+        pool.known_by_hash
+            .entry(tx.hash.clone())
+            .or_insert_with(|| tx.clone());
+    }
 }
 
 pub fn add_transaction(transaction: &Transaction) -> bool {
-    let mut transactions = PENDING_TRANSACTIONS.lock().unwrap();
-    for tx in transactions.iter() {
-        if tx.hash == transaction.hash {
-            return false;
-        }
+    let mut pool = TX_POOL.lock().unwrap();
+    if pool.known_by_hash.contains_key(&transaction.hash) {
+        return false;
     }
 
-    transactions.push(transaction.clone());
+    pool.known_by_hash
+        .insert(transaction.hash.clone(), transaction.clone());
+
     println!("[LEDGER] Added transaction: {}", transaction.hash);
     true
 }
 
-pub fn take_pending_transactions() -> Vec<Transaction> {
-    let mut pending = PENDING_TRANSACTIONS.lock().unwrap();
-    std::mem::take(&mut *pending)
+pub fn get_pending_transactions() -> Vec<Transaction> {
+    let ledger = LEDGER.lock().unwrap();
+    let confirmed = confirmed_tx_hashes(&ledger);
+    drop(ledger);
+
+    let pool = TX_POOL.lock().unwrap();
+    let mut pending: Vec<Transaction> = pool
+        .known_by_hash
+        .values()
+        .filter(|tx| !confirmed.contains(&tx.hash))
+        .cloned()
+        .collect();
+
+    pending.sort_by_key(|tx| tx.timestamp);
+    pending
+}
+
+pub fn get_transactions_for_mining(limit: usize) -> Vec<Transaction> {
+    let mut pending = get_pending_transactions();
+    pending.truncate(limit);
+    pending
 }
 
 pub fn pending_txs_len() -> usize {
-    let pending = PENDING_TRANSACTIONS.lock().unwrap();
-    pending.len()
+    get_pending_transactions().len()
 }
 
 pub fn last_block_hash() -> String {

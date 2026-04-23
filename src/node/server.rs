@@ -24,6 +24,7 @@ impl HttpHandler for RequestHandler {
             Route::GetHashesAfter(hash) => get_hashes_after(&hash),
             Route::GetBlock(hash) => get_block(&hash),
             Route::PostBlock => post_block(&body),
+            Route::GetTransactions => get_transactions(),
             Route::PostTransaction => post_transaction(&body),
             Route::GetUsers => get_users(),
             Route::PostUsers => post_users(&body),
@@ -89,6 +90,15 @@ fn get_block(hash: &str) -> HttpResult {
         Some(block) => HttpResult::ok(&BlockDto::from(&block)),
         None => HttpResult::not_found(),
     }
+}
+
+fn get_transactions() -> HttpResult {
+    let txs: Vec<TransactionDto> = ledger::get_pending_transactions()
+        .iter()
+        .map(TransactionDto::from)
+        .collect();
+
+    HttpResult::ok(&txs)
 }
 
 fn post_transaction(body: &str) -> HttpResult {
