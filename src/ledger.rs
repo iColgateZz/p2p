@@ -149,9 +149,9 @@ pub fn get_block(hash: &str) -> Option<Block> {
     None
 }
 
-pub fn get_blocks_copy() -> Vec<Block> {
+pub fn with_blocks<R>(f: impl FnOnce(&[Block]) -> R) -> R {
     let blocks = BLOCKS.lock().unwrap();
-    blocks.to_vec()
+    f(&blocks)
 }
 
 pub fn chain_len() -> usize {

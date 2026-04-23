@@ -132,28 +132,29 @@ fn post_block(body: &str) -> HttpResult {
 }
 
 fn get_users() -> HttpResult {
-    let blocks = ledger::get_blocks_copy();
-    let mut balances: HashMap<String, i64> = HashMap::new();
+    let users = ledger::with_blocks(|blocks| {
+        let mut balances: HashMap<String, i64> = HashMap::new();
 
-    for block in blocks {
-        for tx in block.transactions {
-            match transactions::parse_transaction(&tx.data) {
-                Some(ParsedTx::CreateUser { name, balance }) => {
-                    balances.insert(name, balance);
+        for block in blocks {
+            for tx in &block.transactions {
+                match transactions::parse_transaction(&tx.data) {
+                    Some(ParsedTx::CreateUser { name, balance }) => {
+                        balances.insert(name, balance);
+                    }
+                    Some(ParsedTx::Transfer { from, to, sum }) => {
+                        *balances.entry(from).or_insert(0) -= sum;
+                        *balances.entry(to).or_insert(0) += sum;
+                    }
+                    None => {}
                 }
-                Some(ParsedTx::Transfer { from, to, sum }) => {
-                    *balances.entry(from).or_insert(0) -= sum;
-                    *balances.entry(to).or_insert(0) += sum;
-                }
-                None => {}
             }
         }
-    }
 
-    let users: Vec<UserDto> = balances
-        .into_iter()
-        .map(|(name, balance)| UserDto { name, balance })
-        .collect();
+        balances
+            .into_iter()
+            .map(|(name, balance)| UserDto { name, balance })
+            .collect::<Vec<_>>()
+    });
 
     HttpResult::ok(&users)
 }
@@ -178,18 +179,21 @@ fn post_users(body: &str) -> HttpResult {
 }
 
 fn get_transfers() -> HttpResult {
-    let blocks = ledger::get_blocks_copy();
-    let mut transfers = Vec::new();
+    let transfers = ledger::with_blocks(|blocks| {
+        let mut transfers = Vec::new();
 
-    for block in blocks {
-        for tx in block.transactions {
-            if let Some(ParsedTx::Transfer { from, to, sum }) =
-                transactions::parse_transaction(&tx.data)
-            {
-                transfers.push(TransferDto { from, to, sum });
+        for block in blocks {
+            for tx in &block.transactions {
+                if let Some(ParsedTx::Transfer { from, to, sum }) =
+                    transactions::parse_transaction(&tx.data)
+                {
+                    transfers.push(TransferDto { from, to, sum });
+                }
             }
         }
-    }
+
+        transfers
+    });
 
     HttpResult::ok(&transfers)
 }
