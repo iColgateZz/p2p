@@ -10,24 +10,24 @@ class Node:
         self.base_url = "http://" + addr
 
     def status(self):
-        return requests.get(f"{self.base_url}/status", timeout=2).json()
+        return requests.get(f"{self.base_url}/status", timeout=5).json()
 
     def create_user(self, name, balance):
         requests.post(
             f"{self.base_url}/users",
             json={"name": name, "balance": balance},
-            timeout=2
+            timeout=5
         ).raise_for_status()
 
     def transfer(self, xfrom, to, amount):
         requests.post(
             f"{self.base_url}/transfers",
             json={"from": xfrom, "to": to, "sum": amount},
-            timeout=2
+            timeout=5
         ).raise_for_status()
 
     def users(self):
-        return requests.get(f"{self.base_url}/users", timeout=2).json()
+        return requests.get(f"{self.base_url}/users", timeout=5).json()
 
 
 class LocalNode:
@@ -54,7 +54,7 @@ def main():
     print("[INFO] Using localhost:5000 as bootstrap node (never killed)")
 
     local_nodes = []
-    NUM_LOCAL_NODES = 10
+    NUM_LOCAL_NODES = 50
     base_port = 5001
 
     print(f"[INFO] Trying to spawn {NUM_LOCAL_NODES} local nodes")
@@ -97,7 +97,7 @@ def main():
     TRANSFER_INTERVAL = 1          # seconds between actions
     SPAWN_PROBABILITY = 0.05       # chance to spawn a node
     KILL_PROBABILITY = 0.05        # chance to kill a local node
-    POST_CHAOS_WAIT = 180           # seconds to let network settle
+    POST_CHAOS_WAIT = 180           # seconds to let network settlex
 
     start_time = time.time()
     while time.time() - start_time < CHAOS_DURATION:
@@ -164,6 +164,14 @@ def main():
 
         except Exception:
             continue
+        
+    print("\nParams:")
+    print(f"NUM_LOCAL_NODES     : {NUM_LOCAL_NODES}")
+    print(f"CHAOS_DURATION      : {CHAOS_DURATION}")
+    print(f"TRANSFER_INTERVAL   : {TRANSFER_INTERVAL}")
+    print(f"SPAWN_PROBABILITY   : {SPAWN_PROBABILITY}")
+    print(f"KILL_PROBABILITY    : {KILL_PROBABILITY}")
+    print(f"POST_CHAOS_WAIT     : {POST_CHAOS_WAIT}")
 
     print("\n========== CHAOS TEST RESULTS ==========")
     print(f"Nodes queried          : {len(all_nodes)}")

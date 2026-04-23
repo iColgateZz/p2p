@@ -1,75 +1,139 @@
-NUM_LOCAL_NODES = 10
-CHAOS_DURATION = 5 * 60 
-TRANSFER_INTERVAL = 1   
-SPAWN_PROBABILITY = 0.05
-KILL_PROBABILITY = 0.05 
-POST_CHAOS_WAIT = 180   
+NUM_LOCAL_NODES     : 10
+CHAOS_DURATION      : 300
+TRANSFER_INTERVAL   : 1
+SPAWN_PROBABILITY   : 0.05
+KILL_PROBABILITY    : 0.05
+POST_CHAOS_WAIT     : 180
+
 ========== CHAOS TEST RESULTS ==========
-Nodes queried          : 9
-Successful transfers   : 239
-Failed transfers       : 59
+Nodes queried          : 7
+Successful transfers   : 298
+Failed transfers       : 0
 
 Expected final balances (source of truth):
-  Alice: 131
-  Bob: 605
-  Eve: 242
-
-Blockchain heights observed: 3
-  Height 3: 1 node(s)
-  Height 6: 1 node(s)
-  Height 7: 7 node(s)
-
-Last block hashes observed: 3
-  Hash 00000b93… : 7 node(s)
-  Hash 00000076… : 1 node(s)
-  Hash 00000061… : 1 node(s)
-
-Distinct balance states: 2
-
-State #1 observed on 8 node(s): <-- EXPECTED
-  Alice: 131
-  Bob: 605
-  Eve: 242
-
-State #2 observed on 1 node(s):
-  Alice: 158
-  Bob: 581
-  Eve: 239
-
-Nodes matching expected state: 8/9
-
-========================================
-
-NUM_LOCAL_NODES = 10
-CHAOS_DURATION = 10 * 60 
-TRANSFER_INTERVAL = 1   
-SPAWN_PROBABILITY = 0.05
-KILL_PROBABILITY = 0.05 
-POST_CHAOS_WAIT = 180   
-========== CHAOS TEST RESULTS ==========
-Nodes queried          : 11
-Successful transfers   : 426
-Failed transfers       : 171
-
-Expected final balances (source of truth):
-  Alice: 118
-  Bob: 488
-  Eve: 372
+  Alice: 204
+  Bob: 437
+  Eve: 337
 
 Blockchain heights observed: 1
-  Height 41: 11 node(s)
+  Height 11: 7 node(s)
 
 Last block hashes observed: 1
-  Hash 00000cfd… : 11 node(s)
+  Hash 0000018f… : 7 node(s)
 
 Distinct balance states: 1
 
-State #1 observed on 11 node(s):
-  Alice: 118
-  Bob: 473
-  Eve: 367
+State #1 observed on 7 node(s): <-- EXPECTED
+  Alice: 204
+  Bob: 437
+  Eve: 337
 
-Nodes matching expected state: 0/11
+Nodes matching expected state: 7/7
 
 ========================================
-pavelpavliv@Mac p2p % 
+
+NUM_LOCAL_NODES     : 20
+CHAOS_DURATION      : 600
+TRANSFER_INTERVAL   : 1
+SPAWN_PROBABILITY   : 0.05
+KILL_PROBABILITY    : 0.05
+POST_CHAOS_WAIT     : 180
+
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 22
+Successful transfers   : 596
+Failed transfers       : 0
+
+Expected final balances (source of truth):
+  Alice: 155
+  Bob: 627
+  Eve: 196
+
+Blockchain heights observed: 1
+  Height 50: 22 node(s)
+
+Last block hashes observed: 3
+  Hash 000009f8… : 19 node(s)
+  Hash 0000018e… : 1 node(s)
+  Hash 00000ad7… : 2 node(s)
+
+Distinct balance states: 1
+
+State #1 observed on 22 node(s):
+  Alice: 155
+  Bob: 659
+  Eve: 190
+
+Nodes matching expected state: 0/22
+
+========================================
+
+NUM_LOCAL_NODES     : 30
+CHAOS_DURATION      : 600
+TRANSFER_INTERVAL   : 1
+SPAWN_PROBABILITY   : 0.05
+KILL_PROBABILITY    : 0.05
+POST_CHAOS_WAIT     : 180
+
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 22
+Successful transfers   : 595
+Failed transfers       : 0
+
+Expected final balances (source of truth):
+  Alice: 51
+  Bob: 491
+  Eve: 436
+
+Blockchain heights observed: 1
+  Height 37: 22 node(s)
+
+Last block hashes observed: 2
+  Hash 000005e6… : 19 node(s)
+  Hash 000000ec… : 3 node(s)
+
+Distinct balance states: 1
+
+State #1 observed on 22 node(s):
+  Alice: 42
+  Bob: 461
+  Eve: 453
+
+Nodes matching expected state: 0/22
+
+========================================
+
+NUM_LOCAL_NODES     : 50
+CHAOS_DURATION      : 600
+TRANSFER_INTERVAL   : 1
+SPAWN_PROBABILITY   : 0.05
+KILL_PROBABILITY    : 0.05
+POST_CHAOS_WAIT     : 180
+
+========== CHAOS TEST RESULTS ==========
+Nodes queried          : 50
+Successful transfers   : 595
+Failed transfers       : 0
+
+Expected final balances (source of truth):
+  Alice: 9
+  Bob: 594
+  Eve: 375
+
+Blockchain heights observed: 1
+  Height 30: 50 node(s)
+
+Last block hashes observed: 2
+  Hash 00000aa1… : 47 node(s)
+  Hash 00000b9e… : 3 node(s)
+
+Distinct balance states: 1
+
+State #1 observed on 50 node(s): <-- EXPECTED
+  Alice: 9
+  Bob: 594
+  Eve: 375
+
+Nodes matching expected state: 50/50
+
+========================================
