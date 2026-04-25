@@ -474,3 +474,15 @@ Hajusosa on meil simuleeritud _Docker_-iga (2. ja 3. katse).
 Muidu testisime käsitsi ka kahe arvuti peal. Selleks on vaja natuke muuta koodi, et vaikimisi _ip_ oleks mitte `127.0.0.1` vaid selle arvuti _local ip_ aadress (nt `192.168.1.204`). Ka failis `peers_config.json` tuleb muuta _ip_-d nendeks, mis kahe arvuti _local ip_-d on.
 
 Käivitasime mõlemad 50 sõlme ning käsitsi simuleerisime _curl_-iga erinevad tehingud. Nagu oodatud mõne aja pärast info ei olnud enam sünkroniseeritud. Muidu sõlmed suhtlesid omavahel.
+
+## Praktikum No 2 – Konsensuse saavutamine
+
+Teise praktikumi jaoks oli vaja implementeerida konsensusalgoritm. Üldiselt on mõistlik enne implementeerimist teha uuringut, mis algoritmid üldse on ning kuidas nad töötavad, ning sõltudes uuringu tulemustest valida ühe välja, mis kõige paremini sobib. Loomulikult meil oli see vastupidi. Alguses meie implementeerisime täitsa tõõtava asja ja alles siis hakkasime uurima, mis algoritmi me kirjutasime. Tuli välja, et selles projektis kasutatakse Nakamoto tüüpi konsensusalgoritmi.
+
+## Algoritmi kirjeldus
+
+Eelmise praktikumi tulemusena on meil olemas sõlmed, mis on nii serverid kui ka kliendid. Nad suhtlevad omavahel, jagades infot erinevate transaktsioonide kohta, mis võrgus toimuvad...
+
+## Teised uuendused
+- Transaktsioonide synkimine
+- Ploki kaevandamine
