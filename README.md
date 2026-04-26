@@ -481,7 +481,7 @@ Teise praktikumi jaoks oli vaja implementeerida konsensusalgoritm. Üldiselt on 
 
 ## Algoritmi kirjeldus
 
-Eelmise praktikumi tulemusena on meil olemas sõlmed, mis on nii serverid kui ka kliendid. Nad suhtlevad omavahel, jagades infot erinevate transaktsioonide kohta, mis võrgus toimuvad. Kuid ilma konsensusalgoritmita puudus ühine kokkulepe selles, milline tehingute järjekord on "õige". Teises praktikumis lisasime Nakamoto konsensuse, mis lahendab selle probleemi läbi proof-of-work kaevandamise ja pikima ahela reegli.
+Eelmise praktikumi tulemusena on meil olemas sõlmed, mis on nii serverid kui ka kliendid. Nad suhtlevad omavahel, jagades infot erinevate transaktsioonide kohta, mis võrgus toimuvad. Kuid ilma konsensusalgoritmita puudus ühine kokkulepe selles, milline tehingute ning plokkide järjekord on "õige". Teises praktikumis lisasime Nakamoto konsensuse, mis lahendab selle probleemi läbi proof-of-work kaevandamise ja pikima ahela reegli.
 
 ### Proof-of-Work kaevandamine
  
@@ -499,17 +499,17 @@ Leitud plokk saadetakse kohe kõikidele teadaolevatele naabersõlmedele, kes kon
  
 Kuna mitu sõlme kaevandavad samaaegselt, võib juhtuda, et kaks sõlme leiavad peaaegu samaaegselt erineva kehtiva ploki samal kõrgusel. Sel juhul tekib ajutine _fork_ - osa sõlmi jätkab ühe haru peal, teised teise peal.
  
-Konflikt lahendatakse lihtsalt: **alati võidab pikim ahel**. Kui sõlm saab teiselt sõlmelt ploki, mis pikendab tema ahelast pikemat haru, lülitub ta automaatselt sellele harule. Lühema haru plokid muutuvad _orphan_-plokkideks.
+Konflikt lahendatakse lihtsalt: **alati võidab pikim ahel**. Kui sõlm saab teiselt sõlmelt ploki, mis pikendab tema ahelast pikemat haru, lülitub ta automaatselt sellele harule.
  
 Lisaks on olemas _orphan block_ mehhanism: kui saabub plokk, mille eelmine plokk pole veel teada, salvestatakse see ajutiselt `ORPHAN_BLOCKS` tabelisse. Kui puuduv eelmine plokk hiljem saabub, lahendatakse orvud automaatselt.
 
 ### Tehingute sünkroniseerimine
  
-Lisasime ka tehingute aktiivse sünkroniseerimise. Sõlm küsib regulaarselt naabersõlmedelt nende ootelolevaid tehinguid ning lisab puuduvad enda poolele. See vähendab olukorda, kus kaevandatakse tühja plokki lihtsalt sellepärast, et tehingud pole veel kohale jõudnud.
+Lisasime ka tehingute aktiivse sünkroniseerimise. Sõlm küsib regulaarselt naabersõlmedelt nende ootelolevaid tehinguid ning lisab puuduvad enda poolele. See vähendab olukorda, kus mingi tehing kaduma läheb. Selleks oli lisatud GET /transactions _endpoint_.
 
 ## Katsed konsensusalgoritmiga
  
-Katsete tegemiseks kasutasime sama `chaos_test.py` skripti, mis kolmandas katses. Tulemused on failis `chaos_result2.txt`.
+Katsete tegemiseks kasutasime sama `chaos_test.py` skripti, mis 1. praktikumi kolmandas katses, kuid see kord lülitasime välja docker _container_-eid. Uute katsete tulemused on failis `chaos_result2.txt`.
 
 ### Mida katsed näitasid
  
