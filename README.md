@@ -1,7 +1,7 @@
 
 # ITI0215_26 Hajusüsteemid
 
-## Praktikum No 1 – Lihtne P2P süsteem
+## Praktikum No 1 - Lihtne P2P süsteem
 
 -------------------------------
 
@@ -475,14 +475,63 @@ Muidu testisime käsitsi ka kahe arvuti peal. Selleks on vaja natuke muuta koodi
 
 Käivitasime mõlemad 50 sõlme ning käsitsi simuleerisime _curl_-iga erinevad tehingud. Nagu oodatud mõne aja pärast info ei olnud enam sünkroniseeritud. Muidu sõlmed suhtlesid omavahel.
 
-## Praktikum No 2 – Konsensuse saavutamine
+## Praktikum No 2 - Konsensuse saavutamine
 
 Teise praktikumi jaoks oli vaja implementeerida konsensusalgoritm. Üldiselt on mõistlik enne implementeerimist teha uuringut, mis algoritmid üldse on ning kuidas nad töötavad, ning sõltudes uuringu tulemustest valida ühe välja, mis kõige paremini sobib. Loomulikult meil oli see vastupidi. Alguses meie implementeerisime täitsa tõõtava asja ja alles siis hakkasime uurima, mis algoritmi me kirjutasime. Tuli välja, et selles projektis kasutatakse Nakamoto tüüpi konsensusalgoritmi.
 
 ## Algoritmi kirjeldus
 
-Eelmise praktikumi tulemusena on meil olemas sõlmed, mis on nii serverid kui ka kliendid. Nad suhtlevad omavahel, jagades infot erinevate transaktsioonide kohta, mis võrgus toimuvad...
+Eelmise praktikumi tulemusena on meil olemas sõlmed, mis on nii serverid kui ka kliendid. Nad suhtlevad omavahel, jagades infot erinevate transaktsioonide kohta, mis võrgus toimuvad. Kuid ilma konsensusalgoritmita puudus ühine kokkulepe selles, milline tehingute järjekord on "õige". Teises praktikumis lisasime Nakamoto konsensuse, mis lahendab selle probleemi läbi proof-of-work kaevandamise ja pikima ahela reegli.
 
-## Teised uuendused
-- Transaktsioonide synkimine
-- Ploki kaevandamine
+### Proof-of-Work kaevandamine
+ 
+Iga sõlm kogub ootelolevad tehingud kokku ja proovib need uude plokki panna. Et plokk oleks kehtiv, peab selle räsi algama `MINING_COMPLEXITY = 5` nulliga (ehk `00000...`). Ploki räsi arvutatakse järgmiselt:
+ 
+```
+hash(eelmise_ploki_hash + tehingute_hashid + timestamp + nonce)
+```
+ 
+Sõlm katsub järjest erinevaid `nonce` väärtusi, kuni leiab sobiva räsi.
+ 
+Leitud plokk saadetakse kohe kõikidele teadaolevatele naabersõlmedele, kes kontrollivad selle kehtivust ja lisavad oma ahelasse.
+
+### Pikima ahela reegel (Longest Chain Rule)
+ 
+Kuna mitu sõlme kaevandavad samaaegselt, võib juhtuda, et kaks sõlme leiavad peaaegu samaaegselt erineva kehtiva ploki samal kõrgusel. Sel juhul tekib ajutine _fork_ - osa sõlmi jätkab ühe haru peal, teised teise peal.
+ 
+Konflikt lahendatakse lihtsalt: **alati võidab pikim ahel**. Kui sõlm saab teiselt sõlmelt ploki, mis pikendab tema ahelast pikemat haru, lülitub ta automaatselt sellele harule. Lühema haru plokid muutuvad _orphan_-plokkideks.
+ 
+Lisaks on olemas _orphan block_ mehhanism: kui saabub plokk, mille eelmine plokk pole veel teada, salvestatakse see ajutiselt `ORPHAN_BLOCKS` tabelisse. Kui puuduv eelmine plokk hiljem saabub, lahendatakse orvud automaatselt.
+
+### Tehingute sünkroniseerimine
+ 
+Lisasime ka tehingute aktiivse sünkroniseerimise. Sõlm küsib regulaarselt naabersõlmedelt nende ootelolevaid tehinguid ning lisab puuduvad enda poolele. See vähendab olukorda, kus kaevandatakse tühja plokki lihtsalt sellepärast, et tehingud pole veel kohale jõudnud.
+
+## Katsed konsensusalgoritmiga
+ 
+Katsete tegemiseks kasutasime sama `chaos_test.py` skripti, mis kolmandas katses. Tulemused on failis `chaos_result2.txt`.
+
+### Mida katsed näitasid
+ 
+**Enne konsensusalgoritmi** (tulemused `chaos_results.txt`-st) puudus sõlmede vahel igasugune kokkulepe. Isegi väikese koormuse ja 60 sõlmega tekkis kaks täiesti erinevat ahela otsa ja kaks erinevat bilansi seisu. Suure koormuse korral (75 sõlme, 10 min) nägi iga sõlm praktiliselt oma ainulaadset maailmapilti - 51 erinevat viimast räsi 84 sõlme seas.
+ 
+**Pärast konsensusalgoritmi lisamist** (tulemused `chaos_result2.txt`-st) on pilt oluliselt parem:
+ 
+| Sõlmi | Kestus | Intervall | Kõrguste kokkulangevus | Bilansi kokkulangevus |
+|-------|--------|-----------|------------------------|----------------------|
+| 10 | 5 min | 1s | 7/7 samal kõrgusel | 7/7 õige tulemus |
+| 20 | 10 min | 1s | 22/22 samal kõrgusel | kõik leppisid kokku, aga mõned tehingud läksid kaduma |
+| 30 | 10 min | 1s | 22/22 samal kõrgusel | kõik leppisid kokku, aga mõned tehingud läksid kaduma |
+| 50 | 10 min | 1s | 50/50 samal kõrgusel | 50/50 õige tulemus |
+| 50 | 10 min | 0.5s | 55/55 samal kõrgusel | kõik leppisid kokku, aga mõned tehingud läksid kaduma |
+| 50 | 10 min | 0.2s | peaaegu (43/44 samal kõrgusel) | tehinguid läks kaduma |
+
+
+### Miks mõned tehingud lähevad kaduma
+ 
+Kõrge koormuse ja sõlmede pideva liitumise/lahkumise tõttu ei jõua kõik tehingud alati õigeaegselt kõigi sõlmedeni. Tulemuseks on lõppbilanss, mis erineb oodatust mõne tehingu võrra.
+ 
+### Millal konsensus ebaõnnestub
+ 
+Kõige kõrgema koormusega katses (50 sõlme, tehing iga 0.2 sekundi tagant) jäi üks sõlm 44-st eraldiseisvale lühemale ahelale isegi 300 sekundi ooteaja järel. See näitab, et piisavalt kiire tehinguvoo ja paljude samaaegsete kaevandajate korral ei jõua mõni sõlm alati õigeaegselt pikima ahelaga sünkroniseeruda.
+ 
