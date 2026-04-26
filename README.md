@@ -477,7 +477,7 @@ Käivitasime mõlemad 50 sõlme ning käsitsi simuleerisime _curl_-iga erinevad 
 
 ## Praktikum No 2 - Konsensuse saavutamine
 
-Teise praktikumi jaoks oli vaja implementeerida konsensusalgoritm. Üldiselt on mõistlik enne implementeerimist teha uuringut, mis algoritmid üldse on ning kuidas nad töötavad, ning sõltudes uuringu tulemustest valida ühe välja, mis kõige paremini sobib. Loomulikult meil oli see vastupidi. Alguses meie implementeerisime täitsa tõõtava asja ja alles siis hakkasime uurima, mis algoritmi me kirjutasime. Tuli välja, et selles projektis kasutatakse Nakamoto tüüpi konsensusalgoritmi.
+Teise praktikumi jaoks oli vaja implementeerida konsensusalgoritm. Üldiselt on mõistlik enne implementeerimist teha uuringut, mis algoritmid üldse on ning kuidas nad töötavad, ning sõltudes uuringu tulemustest valida ühe välja, mis kõige paremini sobib. Loomulikult meil oli see vastupidi. Alguses meie implementeerisime täitsa töötava asja ja alles siis hakkasime uurima, mis algoritmi me kirjutasime. Tuli välja, et selles projektis kasutatakse Nakamoto tüüpi konsensusalgoritmi.
 
 ## Algoritmi kirjeldus
 
